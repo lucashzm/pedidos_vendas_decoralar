@@ -26,8 +26,6 @@ function renderizarLista(){
   ul.innerHTML = '';
 
   lista.forEach((item,index)=>{
-    const subtotal = item.valor_unitario * item.quantidade;
-
     const li = document.createElement('li');
     li.className = 'item-pedido';
     li.innerHTML = `
@@ -35,7 +33,6 @@ function renderizarLista(){
         <strong>${item.sku} - ${item.produto}</strong>
         <span>Quantidade: ${item.quantidade}</span>
         <span>Valor unitário: R$ ${item.valor_unitario.toFixed(2).replace('.',',')}</span>
-        <span>Subtotal: R$ ${subtotal.toFixed(2).replace('.',',')}</span>
       </div>
       <button class="remover-produto" data-index="${index}">X</button>
     `;

@@ -26,38 +26,26 @@ function renderizarLista(){
   ul.innerHTML = '';
 
   lista.forEach((item,index)=>{
+    const subtotal = item.valor_unitario * item.quantidade;
+
     const li = document.createElement('li');
+    li.className = 'item-pedido';
     li.innerHTML = `
+      <div class="produto-resumo">
+        <strong>${item.sku} - ${item.produto}</strong>
+        <span>Quantidade: ${item.quantidade}</span>
+        <span>Valor unitário: R$ ${item.valor_unitario.toFixed(2).replace('.',',')}</span>
+        <span>Subtotal: R$ ${subtotal.toFixed(2).replace('.',',')}</span>
+      </div>
       <button class="remover-produto" data-index="${index}">X</button>
-      <strong>${item.sku} - ${item.produto}</strong><br>
-      R$ ${item.valor_unitario.toFixed(2).replace('.',',')}<br>
-      Qtd: <button class="menos" data-index="${index}">-</button>
-      ${item.quantidade}
-      <button class="mais" data-index="${index}">+</button>
     `;
+
     ul.appendChild(li);
   });
 
   document.querySelectorAll('.remover-produto').forEach(btn=>{
     btn.onclick=()=>{
       lista.splice(Number(btn.dataset.index),1);
-      renderizarLista();
-      atualizarTotal();
-    };
-  });
-
-  document.querySelectorAll('.mais').forEach(btn=>{
-    btn.onclick=()=>{
-      lista[btn.dataset.index].quantidade++;
-      renderizarLista();
-      atualizarTotal();
-    };
-  });
-
-  document.querySelectorAll('.menos').forEach(btn=>{
-    btn.onclick=()=>{
-      const item=lista[btn.dataset.index];
-      if(item.quantidade>1) item.quantidade--;
       renderizarLista();
       atualizarTotal();
     };
@@ -81,17 +69,19 @@ busca.addEventListener('input',()=>{
   if(!termo) return;
 
   produtos.filter((p,index)=>{
-    const sku=skuProduto(index);
+    const sku = skuProduto(index);
     return p.nome.toLowerCase().includes(termo) || sku.includes(termo);
   }).slice(0,10).forEach(p=>{
-    const index=produtos.indexOf(p);
-    const div=document.createElement('div');
-    div.textContent=`${skuProduto(index)} - ${p.nome} - ${p.preco || ''}`;
+    const index = produtos.indexOf(p);
+    const div = document.createElement('div');
+    div.textContent = `${skuProduto(index)} - ${p.nome} - ${p.preco || ''}`;
+
     div.onclick=()=>{
-      produtoSelecionado={produto:p,index};
-      busca.value=`${skuProduto(index)} - ${p.nome}`;
+      produtoSelecionado = {produto:p,index};
+      busca.value = `${skuProduto(index)} - ${p.nome}`;
       resultadoBusca.innerHTML='';
     };
+
     resultadoBusca.appendChild(div);
   });
 });
@@ -99,18 +89,18 @@ busca.addEventListener('input',()=>{
 document.getElementById('adicionarProduto').onclick=()=>{
   if(!produtoSelecionado) return;
 
-  const quantidade=Number(document.getElementById('quantidade').value || 1);
-  const produto=produtoSelecionado.produto;
-  const index=produtoSelecionado.index;
+  const quantidade = Number(document.getElementById('quantidade').value || 1);
+  const produto = produtoSelecionado.produto;
+  const index = produtoSelecionado.index;
 
   lista.push({
-    sku:skuProduto(index),
-    produto:produto.nome,
+    sku: skuProduto(index),
+    produto: produto.nome,
     quantidade,
-    valor_unitario:valorProduto(produto)
+    valor_unitario: valorProduto(produto)
   });
 
-  produtoSelecionado=null;
+  produtoSelecionado = null;
   busca.value='';
   document.getElementById('quantidade').value=1;
 

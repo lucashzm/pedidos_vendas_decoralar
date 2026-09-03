@@ -1,4 +1,8 @@
 const CATALOGO_URL = 'https://raw.githubusercontent.com/lucashzm/Catalogo_online_Decoralar/main/produtos.js';
+const SUPABASE_URL = 'https://hpjiwmmslyvuqrkllmvb.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_bx1NzXS3nlgFK-te-Nuk9g_6n0j4htx';
+
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let produtos = [];
 let usuarios = [];
@@ -12,90 +16,62 @@ const totalEl = document.getElementById('total');
 const freteEl = document.getElementById('frete');
 const vendedorSelect = document.getElementById('vendedorSelect');
 
-function valorProduto(produto){
-  return Number(String(produto.preco || 0).replace('R$','').replace('.','').replace(',','.')) || 0;
-}
-
-function valorFrete(){
-  return Number(String(freteEl.value || 0).replace('R$','').replace('.','').replace(',','.')) || 0;
-}
-
-function formatarBRL(valor){
-  return valor.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
-}
-
-function skuProduto(index){
-  return String(index + 1).padStart(4,'0');
-}
-
-function atualizarTotal(){
-  const totalProdutos = lista.reduce((soma,item)=> soma + item.valor_unitario * item.quantidade,0);
-  totalEl.textContent = formatarBRL(totalProdutos + valorFrete());
-}
+function valorProduto(produto){return Number(String(produto.preco||0).replace('R$','').replace('.','').replace(',','.'))||0;}
+function valorFrete(){return Number(String(freteEl.value||0).replace('R$','').replace('.','').replace(',','.'))||0;}
+function formatarBRL(valor){return valor.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
+function skuProduto(index){return String(index+1).padStart(4,'0');}
+function valorTotal(){return lista.reduce((s,i)=>s+i.valor_unitario*i.quantidade,0)+valorFrete();}
+function atualizarTotal(){totalEl.textContent=formatarBRL(valorTotal());}
 
 function renderizarLista(){
-  ul.innerHTML='';
-  lista.forEach((item,index)=>{
-    const li=document.createElement('li');
-    li.className='item-pedido';
-    li.innerHTML=`<div class="produto-resumo"><strong>${item.sku} - ${item.produto}</strong><span>Quantidade: ${item.quantidade}</span><span>Valor unitário: ${formatarBRL(item.valor_unitario)}</span></div><button class="remover-produto" data-index="${index}">X</button>`;
-    ul.appendChild(li);
-  });
-  document.querySelectorAll('.remover-produto').forEach(btn=>{
-    btn.onclick=()=>{lista.splice(Number(btn.dataset.index),1);renderizarLista();atualizarTotal();};
-  });
+ ul.innerHTML='';
+ lista.forEach((item,index)=>{
+  const li=document.createElement('li');
+  li.className='item-pedido';
+  li.innerHTML=`<div class="produto-resumo"><strong>${item.sku} - ${item.produto}</strong><span>Quantidade: ${item.quantidade}</span><span>Valor unitário: ${formatarBRL(item.valor_unitario)}</span></div><button class="remover-produto" data-index="${index}">X</button>`;
+  ul.appendChild(li);
+ });
+ document.querySelectorAll('.remover-produto').forEach(b=>b.onclick=()=>{lista.splice(Number(b.dataset.index),1);renderizarLista();atualizarTotal();});
 }
 
-async function carregarCatalogo(){
-  const resposta=await fetch(CATALOGO_URL);
-  const codigo=await resposta.text();
-  produtos=new Function(codigo+'\nreturn produtos;')();
-}
+async function carregarCatalogo(){const r=await fetch(CATALOGO_URL);const c=await r.text();produtos=new Function(c+'\nreturn produtos;')();}
 
 async function carregarUsuarios(){
-  // A URL do Supabase será adicionada junto com a configuração do cliente Supabase.
-  // Mantido separado para usar a tabela public.users.
+ const {data,error}=await db.from('users').select('id,nome').eq('ativo',true);
+ if(error){console.error(error);return;}
+ usuarios=data||[];
+ vendedorSelect.innerHTML='<option value="">Selecione</option>';
+ usuarios.forEach(u=>vendedorSelect.innerHTML+=`<option value="${u.id}">${u.nome}</option>`);
 }
 
 busca.addEventListener('input',()=>{
-  const termo=busca.value.toLowerCase().trim();
-  resultadoBusca.innerHTML='';
-  if(!termo)return;
-  produtos.filter((p,index)=>p.nome.toLowerCase().includes(termo)||skuProduto(index).includes(termo)).slice(0,10).forEach(p=>{
-    const index=produtos.indexOf(p);
-    const div=document.createElement('div');
-    div.textContent=`${skuProduto(index)} - ${p.nome} - ${p.preco||''}`;
-    div.onclick=()=>{produtoSelecionado={produto:p,index};busca.value=`${skuProduto(index)} - ${p.nome}`;resultadoBusca.innerHTML='';};
-    resultadoBusca.appendChild(div);
-  });
+ const termo=busca.value.toLowerCase().trim();resultadoBusca.innerHTML='';if(!termo)return;
+ produtos.filter((p,i)=>p.nome.toLowerCase().includes(termo)||skuProduto(i).includes(termo)).slice(0,10).forEach(p=>{const i=produtos.indexOf(p);const d=document.createElement('div');d.textContent=`${skuProduto(i)} - ${p.nome} - ${p.preco||''}`;d.onclick=()=>{produtoSelecionado={produto:p,index:i};busca.value=`${skuProduto(i)} - ${p.nome}`;resultadoBusca.innerHTML='';};resultadoBusca.appendChild(d);});
 });
 
 document.getElementById('adicionarProduto').onclick=()=>{
-  if(!produtoSelecionado)return;
-  const quantidade=Number(document.getElementById('quantidade').value||1);
-  lista.push({sku:skuProduto(produtoSelecionado.index),produto:produtoSelecionado.produto.nome,quantidade,valor_unitario:valorProduto(produtoSelecionado.produto)});
-  produtoSelecionado=null;
-  busca.value='';
-  document.getElementById('quantidade').value=1;
-  renderizarLista();
-  atualizarTotal();
+ if(!produtoSelecionado)return;
+ lista.push({sku:skuProduto(produtoSelecionado.index),produto:produtoSelecionado.produto.nome,quantidade:Number(document.getElementById('quantidade').value||1),valor_unitario:valorProduto(produtoSelecionado.produto)});
+ produtoSelecionado=null;busca.value='';document.getElementById('quantidade').value=1;renderizarLista();atualizarTotal();
 };
 
 freteEl.addEventListener('input',atualizarTotal);
 
+async function salvarPedido(){
+ const cliente={nome:clienteNome.value,cpf_cnpj:clienteCpf.value||null,telefone:clienteTelefone.value,email:clienteEmail.value};
+ let {data:clienteExistente}=await db.from('clientes').select('id').eq('cpf_cnpj',cliente.cpf_cnpj).maybeSingle();
+ let clienteId=clienteExistente?.id;
+ if(!clienteId){const r=await db.from('clientes').insert(cliente).select('id').single();if(r.error)throw r.error;clienteId=r.data.id;}
+ const pedido={cliente_id:clienteId,user_id:vendedorSelect.value,cliente_cpf_cnpj:cliente.cpf_cnpj,endereco:`${cep.value}, ${rua.value}, ${numero.value}, ${bairro.value}, ${cidade.value}`,referencia:referencia.value,forma_pagamento:pagamento.value,frete:valorFrete(),valor_total:valorTotal(),observacoes:observacoes.value};
+ const p=await db.from('pedidos').insert(pedido).select('id').single();
+ if(p.error)throw p.error;
+ const itens=lista.map(i=>({...i,pedido_id:p.data.id}));
+ const r=await db.from('pedido_itens').insert(itens);
+ if(r.error)throw r.error;
+ alert('Pedido salvo com sucesso!');
+}
+
+document.getElementById('finalizar').onclick=()=>salvarPedido().catch(e=>{console.error(e);alert('Erro ao salvar pedido. Veja o console.');});
+
 carregarCatalogo();
 carregarUsuarios();
-
-document.getElementById('finalizar').onclick=()=>{
- const pedido={
-  cliente_id:null,
-  user_id:vendedorSelect ? vendedorSelect.value : null,
-  cliente_nome:document.getElementById('clienteNome').value,
-  cliente_cpf_cnpj:document.getElementById('clienteCpf').value,
-  pagamento:document.getElementById('pagamento').value,
-  observacoes:document.getElementById('observacoes').value,
-  produtos:lista
- };
- console.log('Pedido criado:',pedido);
- alert('Pedido preparado com sucesso!');
-};

@@ -8,9 +8,18 @@ const busca = document.getElementById('buscaProduto');
 const resultadoBusca = document.getElementById('resultadoBusca');
 const ul = document.getElementById('listaProdutos');
 const totalEl = document.getElementById('total');
+const freteEl = document.getElementById('frete');
 
 function valorProduto(produto){
   return Number(String(produto.preco || 0).replace('R$','').replace('.','').replace(',','.')) || 0;
+}
+
+function valorFrete(){
+  return Number(String(freteEl.value || 0).replace('R$','').replace('.','').replace(',','.')) || 0;
+}
+
+function formatarBRL(valor){
+  return valor.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 }
 
 function skuProduto(index){
@@ -18,8 +27,9 @@ function skuProduto(index){
 }
 
 function atualizarTotal(){
-  const total = lista.reduce((soma,item)=> soma + item.valor_unitario * item.quantidade,0);
-  totalEl.textContent = total.toFixed(2).replace('.',',');
+  const totalProdutos = lista.reduce((soma,item)=> soma + item.valor_unitario * item.quantidade,0);
+  const total = totalProdutos + valorFrete();
+  totalEl.textContent = formatarBRL(total);
 }
 
 function renderizarLista(){
@@ -32,7 +42,7 @@ function renderizarLista(){
       <div class="produto-resumo">
         <strong>${item.sku} - ${item.produto}</strong>
         <span>Quantidade: ${item.quantidade}</span>
-        <span>Valor unitário: R$ ${item.valor_unitario.toFixed(2).replace('.',',')}</span>
+        <span>Valor unitário: ${formatarBRL(item.valor_unitario)}</span>
       </div>
       <button class="remover-produto" data-index="${index}">X</button>
     `;
@@ -62,7 +72,6 @@ async function carregarCatalogo(){
 busca.addEventListener('input',()=>{
   const termo = busca.value.toLowerCase().trim();
   resultadoBusca.innerHTML='';
-
   if(!termo) return;
 
   produtos.filter((p,index)=>{
@@ -104,6 +113,8 @@ document.getElementById('adicionarProduto').onclick=()=>{
   renderizarLista();
   atualizarTotal();
 };
+
+freteEl.addEventListener('input', atualizarTotal);
 
 carregarCatalogo();
 

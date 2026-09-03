@@ -54,17 +54,31 @@ button{
   cursor:pointer
 }
 
+.busca-container{
+  position:relative;
+  width:100%;
+}
+
 #resultadoBusca{
+  position:absolute;
+  top:100%;
+  left:0;
+  right:0;
   background:#fff;
   border:1px solid #ccd5e0;
   border-radius:8px;
-  margin-top:4px;
+  margin-top:2px;
+  max-height:250px;
+  overflow-y:auto;
+  z-index:100;
+  box-shadow:0 4px 12px #0002;
 }
 
 #resultadoBusca div{
   padding:10px;
   cursor:pointer;
   border-bottom:1px solid #eee;
+  background:#fff;
 }
 
 #resultadoBusca div:hover{
@@ -79,40 +93,23 @@ button{
 
 #listaProdutos li{
   background:#f5f7fa;
-  border-radius:12px;
-  padding:16px;
+  border-radius:10px;
+  padding:14px;
   margin:12px 0;
-  display:grid;
-  grid-template-columns:1fr auto;
-  gap:12px;
-  align-items:center;
-}
-
-.produto-info{
-  display:flex;
-  flex-direction:column;
-  gap:5px;
+  position:relative;
 }
 
 .remover-produto{
+  position:absolute;
+  right:12px;
+  top:12px;
   background:#b42318;
-  width:38px;
-  height:38px;
+  width:32px;
+  height:32px;
   padding:0;
-  border-radius:8px;
-}
-
-.menos,.mais{
-  width:34px;
-  height:34px;
-  padding:0;
-  margin:0 5px;
+  border-radius:50%;
 }
 
 @media(max-width:700px){
   .grid{grid-template-columns:1fr}
-
-  #listaProdutos li{
-    grid-template-columns:1fr;
-  }
 }

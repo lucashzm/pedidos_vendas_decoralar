@@ -54,31 +54,21 @@ button{
   cursor:pointer
 }
 
-.busca-container{
-  position:relative;
-  width:100%;
-}
-
 #resultadoBusca{
-  position:absolute;
-  top:100%;
-  left:0;
-  right:0;
   background:#fff;
   border:1px solid #ccd5e0;
   border-radius:8px;
-  margin-top:2px;
-  max-height:250px;
+  margin-top:4px;
+  max-height:220px;
   overflow-y:auto;
-  z-index:100;
-  box-shadow:0 4px 12px #0002;
+  position:relative;
+  z-index:10;
 }
 
 #resultadoBusca div{
   padding:10px;
   cursor:pointer;
   border-bottom:1px solid #eee;
-  background:#fff;
 }
 
 #resultadoBusca div:hover{

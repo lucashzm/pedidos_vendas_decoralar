@@ -8,15 +8,17 @@ const ul = document.getElementById('listaProdutos');
 const totalEl = document.getElementById('total');
 
 function atualizarTotal(){
-  const total = lista.reduce((soma, item) => soma + (item.preco * item.quantidade), 0);
+  const total = lista.reduce((soma, item) => soma + (item.valor_unitario * item.quantidade), 0);
   if(totalEl) totalEl.textContent = total.toFixed(2).replace('.', ',');
 }
 
-function carregarCatalogo(){
-  const script = document.createElement('script');
-  script.src = CATALOGO_URL;
-  script.onload = () => {
-    produtos = window.produtos || [];
+async function carregarCatalogo(){
+  try {
+    const resposta = await fetch(CATALOGO_URL);
+    const codigo = await resposta.text();
+
+    produtos = new Function(codigo + '\nreturn produtos;')();
+
     select.innerHTML = '<option value="">Selecione um produto</option>';
 
     produtos.forEach((p, index)=>{
@@ -25,11 +27,10 @@ function carregarCatalogo(){
       option.textContent = `${p.nome} - ${p.preco || ''}`;
       select.appendChild(option);
     });
-  };
-  script.onerror = () => {
+  } catch (erro) {
+    console.error('Erro catálogo:', erro);
     select.innerHTML = '<option>Erro ao carregar catálogo</option>';
-  };
-  document.body.appendChild(script);
+  }
 }
 
 carregarCatalogo();
@@ -40,7 +41,7 @@ document.getElementById('adicionarProduto').onclick = () => {
 
   if(!produto) return;
 
-  const preco = Number(String(produto.preco).replace('R$','').replace('.','').replace(',','.')) || 0;
+  const preco = Number(String(produto.preco || 0).replace('R$','').replace('.','').replace(',','.')) || 0;
 
   lista.push({
     produto: produto.nome,

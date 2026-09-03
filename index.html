@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pedido de Venda - Decoralar</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+<h1>Pedido de Venda</h1>
+
+<section>
+<h2>Dados do cliente</h2>
+<input id="clienteNome" placeholder="Nome do cliente">
+<input id="clienteTelefone" placeholder="Telefone">
+<input id="clienteEmail" placeholder="E-mail">
+<textarea id="clienteEndereco" placeholder="Endereço"></textarea>
+</section>
+
+<section>
+<h2>Vendedor</h2>
+<input id="vendedorNome" placeholder="Nome do vendedor">
+</section>
+
+<section>
+<h2>Produtos</h2>
+<select id="produtoSelect">
+<option value="">Selecione um produto</option>
+</select>
+<input id="quantidade" type="number" value="1" min="1">
+<button id="adicionarProduto">Adicionar produto</button>
+<ul id="listaProdutos"></ul>
+</section>
+
+<section>
+<h2>Pagamento</h2>
+<select id="pagamento">
+<option>Pix</option>
+<option>Cartão</option>
+<option>Boleto</option>
+<option>À vista</option>
+<option>Outro</option>
+</select>
+</section>
+
+<section>
+<h2>Observações</h2>
+<textarea id="observacoes" placeholder="Digite observações do pedido"></textarea>
+</section>
+
+<button id="finalizar">Finalizar pedido</button>
+</div>
+<script src="js/app.js"></script>
+</body>
+</html>

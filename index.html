@@ -8,49 +8,12 @@
 </head>
 <body>
 <div class="container">
-<h1>Pedido de Venda</h1>
-
-<section>
-<h2>Dados do cliente</h2>
-<input id="clienteNome" placeholder="Nome do cliente">
-<input id="clienteTelefone" placeholder="Telefone">
-<input id="clienteEmail" placeholder="E-mail">
-<textarea id="clienteEndereco" placeholder="Endereço"></textarea>
-</section>
-
-<section>
-<h2>Vendedor</h2>
-<input id="vendedorNome" placeholder="Nome do vendedor">
-</section>
-
-<section>
-<h2>Produtos</h2>
-<select id="produtoSelect">
-<option value="">Selecione um produto</option>
-</select>
-<input id="quantidade" type="number" value="1" min="1">
-<button id="adicionarProduto">Adicionar produto</button>
-<ul id="listaProdutos"></ul>
-</section>
-
-<section>
-<h2>Pagamento</h2>
-<select id="pagamento">
-<option>Pix</option>
-<option>Cartão</option>
-<option>Boleto</option>
-<option>À vista</option>
-<option>Outro</option>
-</select>
-</section>
-
-<section>
-<h2>Observações</h2>
-<textarea id="observacoes" placeholder="Digite observações do pedido"></textarea>
-</section>
-
+<header><small>DECORALAR</small><h1>Pedido de Venda</h1><p>Registre o cliente junto com a venda.</p></header>
+<section><h2>Cliente</h2><div class="grid"><input id="clienteNome" placeholder="Nome"><input id="clienteCpf" placeholder="CPF/CNPJ"><input id="clienteTelefone" placeholder="Telefone"><input id="clienteEmail" placeholder="E-mail"></div><textarea id="clienteEndereco" placeholder="Endereço de entrega"></textarea></section>
+<section><h2>Produtos</h2><div class="grid"><select id="produtoSelect"><option>Carregando catálogo...</option></select><input id="quantidade" type="number" value="1" min="1"></div><button id="adicionarProduto">+ Adicionar produto</button><ul id="listaProdutos"></ul><h3>Total: R$ <span id="total">0,00</span></h3></section>
+<section><h2>Pagamento e entrega</h2><div class="grid"><select id="pagamento"><option>Pix</option><option>Cartão</option><option>Boleto</option><option>À vista</option></select><select id="intencao"><option>Selecione intenção</option><option>Comprar</option><option>Orçamento</option></select><input id="frete" placeholder="Frete"></div></section>
+<section><h2>Vendedor</h2><input id="vendedorNome" placeholder="Nome do vendedor"><textarea id="observacoes" placeholder="Observações"></textarea></section>
 <button id="finalizar">Finalizar pedido</button>
 </div>
 <script src="js/app.js"></script>
-</body>
-</html>
+</body></html>

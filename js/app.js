@@ -68,9 +68,11 @@ async function salvarPedido(){
  if(p.error)throw p.error;
  const itens=lista.map(i=>({...i,pedido_id:p.data.id}));
  const r=await db.from('pedido_itens').insert(itens);
- if(r.error)throw r.error;
- alert(`Pedido ${p.data.numero_pedido} salvo com sucesso!`);
- console.log(p.data);
+if(r.error)throw r.error;
+
+await gerarPDF(p.data.id);
+
+alert(`Pedido ${p.data.numero_pedido} salvo com sucesso!`);
 }
 
 document.getElementById('finalizar').onclick=()=>salvarPedido().catch(e=>{console.error(e);alert('Erro ao salvar pedido. Veja o console.');});

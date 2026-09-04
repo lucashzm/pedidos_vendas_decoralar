@@ -37,6 +37,6 @@ async function gerarPDF(idPedido){
  doc.setFont('helvetica','normal');doc.setFontSize(9);
  const info=['Declaro que recebi os produtos relacionados neste pedido de venda, conforme especificações descritas acima.','Declaro que os produtos foram conferidos no momento do recebimento, não sendo constatadas avarias aparentes.'];
  info.forEach(t=>{const l=doc.splitTextToSize('• '+t,170);doc.text(l,margem,y);y+=(l.length*4)+3});
- y+=10;doc.line(30,y,180,y);y+=7;doc.setFontSize(10);doc.text('Assinatura do Cliente',105,y,{align:'center'});y+=12;doc.setFontSize(8);doc.text('Documento de pedido de venda - Decoralar',105,y,{align:'center'});
+ y+=10;doc.line(30,y,180,y);y+=7;doc.setFontSize(10);doc.text('Assinatura do Cliente',105,y,{align:'center'});y+=10;doc.setFontSize(10);doc.setFont('helvetica','bold');doc.text('Data do recebimento: ',margem,y);const xData=margem+doc.getTextWidth('Data do recebimento: ');doc.setFont('helvetica','normal');doc.text('____/____/________',xData,y);y+=12;doc.setFontSize(8);doc.text('Documento de pedido de venda - Decoralar',105,y,{align:'center'});
  doc.save(`Pedido_${pedido.numero_pedido}.pdf`);
 }

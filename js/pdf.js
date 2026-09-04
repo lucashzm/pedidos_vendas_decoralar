@@ -26,7 +26,7 @@ async function gerarPDF(idPedido){
  linha();titulo('RESUMO FINANCEIRO');doc.setFont('helvetica','normal');doc.setFontSize(10);doc.text(`Forma de pagamento: ${pedido.forma_pagamento||''}`,margem,y);y+=6;doc.text(`Frete: ${formatarBRL(pedido.frete||0)}`,margem,y);y+=10;
  doc.setFont('helvetica','bold');doc.setFontSize(14);doc.text(`TOTAL DO PEDIDO: ${formatarBRL(pedido.valor_total||0)}`,margem,y);y+=12;
  titulo('OBSERVAÇÕES');doc.setFont('helvetica','normal');doc.setFontSize(9);const obs=doc.splitTextToSize(pedido.observacoes||'',170);doc.text(obs,margem,y);y+=(obs.length*4)+8;
- titulo('INFORMAÇÕES IMPORTANTES DE ENTREGA AO CLIENTE');
+ titulo('DECLARAÇÃO DE RECEBIMENTO');
  const info=['Estou ciente do modelo, características e especificações do produto adquirido.','Declaro que recebi os produtos listados acima','Declaro que o produtos foram recebidos, devidamente conferidos e não possuem defeitos'];
  info.forEach(t=>{const l=doc.splitTextToSize('- '+t,170);doc.text(l,margem,y);y+=(l.length*4)+2});
  y+=8;doc.line(35,y,175,y);y+=6;doc.setFontSize(10);doc.text('Assinatura do Cliente',105,y,{align:'center'});y+=12;doc.setFontSize(8);doc.text('Documento de pedido de venda - Decoralar',105,y,{align:'center'});

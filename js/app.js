@@ -70,6 +70,7 @@ async function salvarPedido(){
  const r=await db.from('pedido_itens').insert(itens);
  if(r.error)throw r.error;
  alert(`Pedido ${p.data.numero_pedido} salvo com sucesso!`);
+ console.log(p.data);
 }
 
 document.getElementById('finalizar').onclick=()=>salvarPedido().catch(e=>{console.error(e);alert('Erro ao salvar pedido. Veja o console.');});

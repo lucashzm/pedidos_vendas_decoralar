@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login - Decoralar</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+<header>
+<small>DECORALAR</small>
+<h1>Acesso ao sistema</h1>
+<p>Entre com seu e-mail e senha.</p>
+</header>
+<section>
+<input id="email" type="email" placeholder="E-mail">
+<input id="senha" type="password" placeholder="Senha">
+<button id="entrar">Entrar</button>
+</section>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://hpjiwmmslyvuqrkllmvb.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_bx1NzXS3nlgFK-te-Nuk9g_6n0j4htx';
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+document.getElementById('entrar').onclick = async () => {
+ const email = document.getElementById('email').value;
+ const senha = document.getElementById('senha').value;
+ const { error } = await db.auth.signInWithPassword({ email, password: senha });
+ if(error){
+  alert('Usuário ou senha inválidos.');
+  console.error(error);
+  return;
+ }
+ window.location.href = 'index.html';
+};
+</script>
+</body>
+</html>

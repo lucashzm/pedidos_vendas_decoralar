@@ -33,84 +33,81 @@ async function gerarPDF(idPedido){
   doc.setFont('helvetica','bold');
   doc.setFontSize(12);
   doc.text(texto,margem,y);
+  y += 6;
   doc.setFont('helvetica','normal');
   doc.setFontSize(10);
  }
 
+ function linha(){
+  doc.line(margem,y,190,y);
+  y += 8;
+ }
+
  doc.setFont('helvetica','bold');
- doc.setFontSize(22);
+ doc.setFontSize(24);
  doc.text('DECORALAR',105,y,{align:'center'});
 
  y += 10;
- doc.setFontSize(15);
+ doc.setFontSize(16);
  doc.text('PEDIDO DE VENDA',105,y,{align:'center'});
 
- y += 15;
+ y += 12;
  doc.setFontSize(12);
  doc.text(`Pedido Nº ${pedido.numero_pedido}`,margem,y);
- doc.text(`Entrega: ${formatarDataBR(pedido.previsao_entrega)}`,130,y);
- doc.line(margem,y+5,190,y+5);
+ doc.text(`Data entrega: ${formatarDataBR(pedido.previsao_entrega)}`,120,y);
+ linha();
 
- y += 15;
  titulo('CLIENTE');
- y += 7;
- doc.text(`Nome: ${cliente?.nome || ''}`,margem,y);
- y += 6;
- doc.text(`Telefone: ${cliente?.telefone || ''}`,margem,y);
- y += 6;
+ doc.text(`Nome: ${cliente?.nome || ''}`,margem,y); y += 6;
+ doc.text(`Telefone: ${cliente?.telefone || ''}`,margem,y); y += 6;
  doc.text(`Email: ${cliente?.email || ''}`,margem,y);
-
  y += 12;
+
  titulo('ENDEREÇO DE ENTREGA');
- y += 7;
- doc.text(pedido.endereco || '',margem,y);
- y += 6;
+ doc.text(pedido.endereco || '',margem,y); y += 6;
  doc.text(`Referência: ${pedido.referencia || ''}`,margem,y);
-
  y += 12;
+
  titulo('PRODUTOS');
- y += 7;
- doc.line(margem,y,190,y);
- y += 7;
  doc.setFont('helvetica','bold');
  doc.text('Produto',margem,y);
  doc.text('Qtd',140,y);
  doc.text('Valor',160,y);
  doc.setFont('helvetica','normal');
+ y += 5;
+ linha();
 
  itens?.forEach(item=>{
-  y += 8;
   doc.setFont('helvetica','bold');
   doc.text(item.produto.substring(0,55),margem,y);
   doc.setFont('helvetica','normal');
   doc.text(String(item.quantidade),140,y);
   doc.text(formatarBRL(item.valor_unitario),160,y);
+  y += 8;
  });
 
- y += 12;
- doc.line(margem,y,190,y);
- y += 10;
+ linha();
  titulo('RESUMO FINANCEIRO');
- y += 7;
- doc.text(`Forma de pagamento: ${pedido.forma_pagamento || ''}`,margem,y);
- y += 7;
- doc.text(`Frete: ${formatarBRL(pedido.frete || 0)}`,margem,y);
- y += 9;
- doc.setFont('helvetica','bold');
- doc.setFontSize(14);
- doc.text(`TOTAL DO PEDIDO: ${formatarBRL(pedido.valor_total || 0)}`,margem,y);
+ doc.text(`Forma de pagamento: ${pedido.forma_pagamento || ''}`,margem,y); y += 7;
+ doc.text(`Frete: ${formatarBRL(pedido.frete || 0)}`,margem,y); y += 10;
 
+ doc.setFont('helvetica','bold');
+ doc.setFontSize(15);
+ doc.text(`TOTAL DO PEDIDO: ${formatarBRL(pedido.valor_total || 0)}`,margem,y);
  y += 18;
+
  doc.setFont('helvetica','normal');
  doc.setFontSize(10);
  doc.text(`Previsão de entrega: ${formatarDataBR(pedido.previsao_entrega)}`,margem,y);
 
- y += 30;
- doc.line(20,y,90,y);
- doc.line(120,y,190,y);
+ y += 25;
+ doc.line(55,y,155,y);
  y += 7;
- doc.text('Assinatura do Cliente',20,y);
- doc.text('Responsável pela Entrega',120,y);
+ doc.text('Assinatura do Cliente / Recebedor',55,y);
+
+ y += 15;
+ doc.setFontSize(9);
+ doc.text('Documento de pedido de venda - Decoralar',105,y,{align:'center'});
 
  doc.save(`Pedido_${pedido.numero_pedido}.pdf`);
 }

@@ -14,6 +14,7 @@ const resultadoBusca = document.getElementById('resultadoBusca');
 const ul = document.getElementById('listaProdutos');
 const totalEl = document.getElementById('total');
 const freteEl = document.getElementById('frete');
+const previsaoEntrega = document.getElementById('previsaoEntrega');
 const vendedorSelect = document.getElementById('vendedorSelect');
 
 function valorProduto(produto){return Number(String(produto.preco||0).replace('R$','').replace('.','').replace(',','.'))||0;}

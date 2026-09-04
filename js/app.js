@@ -64,12 +64,12 @@ async function salvarPedido(){
  let clienteId=clienteExistente?.id;
  if(!clienteId){const r=await db.from('clientes').insert(cliente).select('id').single();if(r.error)throw r.error;clienteId=r.data.id;}
  const pedido={cliente_id:clienteId,user_id:vendedorSelect.value,cliente_cpf_cnpj:cliente.cpf_cnpj,endereco:`${cep.value}, ${rua.value}, ${numero.value}, ${bairro.value}, ${cidade.value}`,referencia:referencia.value,forma_pagamento:pagamento.value,frete:valorFrete(),previsao_entrega: previsaoEntrega.value,valor_total:valorTotal(),observacoes:observacoes.value};
- const p=await db.from('pedidos').insert(pedido).select('id').single();
+ const p=await db.from('pedidos').insert(pedido).select('id, numero_pedido').single();
  if(p.error)throw p.error;
  const itens=lista.map(i=>({...i,pedido_id:p.data.id}));
  const r=await db.from('pedido_itens').insert(itens);
  if(r.error)throw r.error;
- alert('Pedido salvo com sucesso!');
+ alert(`Pedido ${p.data.numero_pedido} salvo com sucesso!`);
 }
 
 document.getElementById('finalizar').onclick=()=>salvarPedido().catch(e=>{console.error(e);alert('Erro ao salvar pedido. Veja o console.');});

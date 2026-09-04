@@ -22,15 +22,15 @@ async function gerarPDF(idPedido){
  doc.text(`Referência: ${pedido.referencia||''}`,margem,y);y+=6;
  doc.setFont('helvetica','bold');doc.text('Observações de entrega:',margem,y);y+=5;
  doc.setFont('helvetica','normal');const obsEntrega=doc.splitTextToSize(pedido.observacoes||'',170);doc.text(obsEntrega,margem,y);y+=(obsEntrega.length*4)+5;
- doc.text(`Previsão de entrega: ${formatarDataBR(pedido.previsao_entrega)}`,margem,y);y+=10;
+ doc.setFont('helvetica','bold');doc.text(`Previsão de entrega: ${formatarDataBR(pedido.previsao_entrega)}`,margem,y);y+=10;
  titulo('PRODUTOS');doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text('Produto',margem,y);doc.text('Qtd',150,y);doc.text('Valor',170,y);y+=6;linha();
  itens?.forEach(i=>{doc.setFont('helvetica','bold');const l=doc.splitTextToSize(i.produto,120);doc.text(l,margem,y);doc.setFont('helvetica','normal');doc.text(String(i.quantidade),150,y);doc.text(formatarBRL(i.valor_unitario),170,y);y+=(l.length*5)+5});
  linha();titulo('RESUMO FINANCEIRO');doc.setFont('helvetica','normal');doc.setFontSize(10);doc.text(`Forma de pagamento: ${pedido.forma_pagamento||''}`,margem,y);y+=6;doc.text(`Frete: ${formatarBRL(pedido.frete||0)}`,margem,y);y+=10;
  doc.setFont('helvetica','bold');doc.setFontSize(14);doc.text(`TOTAL DO PEDIDO: ${formatarBRL(pedido.valor_total||0)}`,margem,y);y+=12;
  titulo('DECLARAÇÃO DE RECEBIMENTO');
  doc.setFont('helvetica','normal');doc.setFontSize(9);
- const info=['Declaro que recebi os produtos relacionados neste pedido de venda, conforme especificações descritas acima.','Declaro que os produtos foram conferidos no momento do recebimento, não sendo constatadas avarias.'];
- info.forEach(t=>{const l=doc.splitTextToSize(t,170);doc.text(l,margem,y);y+=(l.length*4)+3});
+ const info=['Declaro que recebi os produtos relacionados neste pedido de venda, conforme especificações descritas acima.','Declaro que os produtos foram conferidos no momento do recebimento, não sendo constatadas avarias aparentes.'];
+ info.forEach(t=>{const l=doc.splitTextToSize('• '+t,170);doc.text(l,margem,y);y+=(l.length*4)+3});
  y+=10;doc.line(30,y,180,y);y+=7;doc.setFontSize(10);doc.text('Assinatura do Cliente',105,y,{align:'center'});y+=12;doc.setFontSize(8);doc.text('Documento de pedido de venda - Decoralar',105,y,{align:'center'});
  doc.save(`Pedido_${pedido.numero_pedido}.pdf`);
 }

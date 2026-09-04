@@ -9,10 +9,10 @@ async function gerarPDF(idPedido){
  let y=22;
  function formatarDataBR(data){if(!data)return '';const [ano,mes,dia]=data.split('-');return `${dia}/${mes}/${ano}`;}
  function titulo(t){doc.setFont('helvetica','bold');doc.setFontSize(12);doc.text(t,margem,y);y+=9;}
- function linha(){doc.line(margem,y,190,y);y+=12;}
+ function linha(){doc.line(margem,y,190,y);y+=10;}
  doc.setFont('helvetica','bold');doc.setFontSize(26);doc.text('DECORALAR',105,y,{align:'center'});y+=12;
  doc.setFontSize(17);doc.text('PEDIDO DE VENDA',105,y,{align:'center'});y+=18;
- doc.setFontSize(12);doc.text(`Pedido Nº ${pedido.numero_pedido}`,margem,y);y+=5;linha();
+ doc.setFontSize(12);doc.text(`Pedido Nº ${pedido.numero_pedido}`,margem,y);y+=8;linha();
  titulo('CLIENTE');
  doc.setFont('helvetica','normal');doc.setFontSize(11);
  doc.text(`Nome: ${cliente?.nome||''}`,margem,y);y+=7;
@@ -36,8 +36,13 @@ async function gerarPDF(idPedido){
  doc.setFont('helvetica','normal');doc.setFontSize(11);
  doc.text(`Forma de pagamento: ${pedido.forma_pagamento||''}`,margem,y);y+=7;
  doc.text(`Frete: ${formatarBRL(pedido.frete||0)}`,margem,y);y+=12;
- doc.setFont('helvetica','bold');doc.setFontSize(16);doc.text(`TOTAL DO PEDIDO: ${formatarBRL(pedido.valor_total||0)}`,margem,y);y+=35;
- doc.line(45,y,165,y);y+=8;doc.setFont('helvetica','normal');doc.text('Assinatura do Cliente',105,y,{align:'center'});
+ doc.setFont('helvetica','bold');doc.setFontSize(16);doc.text(`TOTAL DO PEDIDO: ${formatarBRL(pedido.valor_total||0)}`,margem,y);y+=16;
+ titulo('OBSERVAÇÕES');
+ doc.setFont('helvetica','normal');doc.setFontSize(10);
+ const obs=doc.splitTextToSize(pedido.observacoes||'',170);
+ doc.text(obs,margem,y);y+=(obs.length*5)+12;
+ doc.line(45,y,165,y);y+=8;
+ doc.setFontSize(10);doc.text('Assinatura do Cliente',105,y,{align:'center'});
  y+=15;doc.setFontSize(9);doc.text('Documento de pedido de venda - Decoralar',105,y,{align:'center'});
  doc.save(`Pedido_${pedido.numero_pedido}.pdf`);
 }

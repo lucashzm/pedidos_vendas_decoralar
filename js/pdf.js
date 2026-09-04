@@ -41,6 +41,20 @@ async function gerarPDF(idPedido){
  doc.setFont('helvetica','normal');doc.setFontSize(10);
  const obs=doc.splitTextToSize(pedido.observacoes||'',170);
  doc.text(obs,margem,y);y+=(obs.length*5)+12;
+ titulo('INFORMAÇÕES IMPORTANTES AO CLIENTE');
+ doc.setFont('helvetica','normal');doc.setFontSize(9);
+ const informacoes=[
+  'O cliente declara estar ciente do modelo, características e especificações do produto adquirido.',
+  'É responsabilidade do cliente conferir as medidas do ambiente antes da entrega e instalação.',
+  'A conferência do produto deverá ser realizada no momento do recebimento.',
+  'Qualquer divergência, avaria ou problema aparente deverá ser informado no ato da entrega.'
+ ];
+ informacoes.forEach(texto=>{
+  const linhas=doc.splitTextToSize('- '+texto,170);
+  doc.text(linhas,margem,y);
+  y+=(linhas.length*4)+3;
+ });
+ y+=10;
  doc.line(45,y,165,y);y+=8;
  doc.setFontSize(10);doc.text('Assinatura do Cliente',105,y,{align:'center'});
  y+=15;doc.setFontSize(9);doc.text('Documento de pedido de venda - Decoralar',105,y,{align:'center'});

@@ -25,7 +25,7 @@ async function gerarPDF(idPedido){
 
  function linha(){
   doc.line(margem,y,190,y);
-  y += 10;
+  y += 12;
  }
 
  doc.setFont('helvetica','bold');
@@ -34,10 +34,11 @@ async function gerarPDF(idPedido){
  y += 12;
  doc.setFontSize(17);
  doc.text('PEDIDO DE VENDA',105,y,{align:'center'});
- y += 15;
+ y += 18;
  doc.setFontSize(12);
  doc.text(`Pedido Nº ${pedido.numero_pedido}`,margem,y);
  doc.text(`Entrega: ${formatarDataBR(pedido.previsao_entrega)}`,130,y);
+ y += 5;
  linha();
 
  titulo('CLIENTE');
@@ -45,13 +46,18 @@ async function gerarPDF(idPedido){
  doc.setFontSize(11);
  doc.text(`Nome: ${cliente?.nome || ''}`,margem,y); y+=7;
  doc.text(`Telefone: ${cliente?.telefone || ''}`,margem,y); y+=7;
- doc.text(`Email: ${cliente?.email || ''}`,margem,y); y+=12;
+ doc.text(`Email: ${cliente?.email || ''}`,margem,y); y+=14;
 
  titulo('ENDEREÇO DE ENTREGA');
  doc.setFont('helvetica','normal');
  doc.setFontSize(11);
- doc.text(pedido.endereco || '',margem,y); y+=7;
- doc.text(`Referência: ${pedido.referencia || ''}`,margem,y); y+=12;
+ const endereco = (pedido.endereco || '').split(',').map(e=>e.trim());
+ doc.text(`CEP: ${endereco[0] || ''}`,margem,y);
+ doc.text(`Rua: ${endereco[1] || ''}`,80,y); y+=7;
+ doc.text(`Número: ${endereco[2] || ''}`,margem,y);
+ doc.text(`Bairro: ${endereco[3] || ''}`,80,y); y+=7;
+ doc.text(`Cidade: ${endereco[4] || ''}`,margem,y); y+=7;
+ doc.text(`Referência: ${pedido.referencia || ''}`,margem,y); y+=14;
 
  titulo('PRODUTOS');
  doc.setFont('helvetica','bold');
@@ -65,11 +71,12 @@ async function gerarPDF(idPedido){
  itens?.forEach(item=>{
   doc.setFont('helvetica','bold');
   doc.setFontSize(10);
-  doc.text(item.produto,margem,y,{maxWidth:115});
+  const linhasProduto = doc.splitTextToSize(item.produto,margem > 0 ? 115 : 115);
+  doc.text(linhasProduto,margem,y);
   doc.setFont('helvetica','normal');
   doc.text(String(item.quantidade),145,y);
   doc.text(formatarBRL(item.valor_unitario),165,y);
-  y+=12;
+  y += (linhasProduto.length * 6) + 8;
  });
 
  linha();
@@ -82,12 +89,12 @@ async function gerarPDF(idPedido){
  doc.setFont('helvetica','bold');
  doc.setFontSize(16);
  doc.text(`TOTAL DO PEDIDO: ${formatarBRL(pedido.valor_total || 0)}`,margem,y);
- y+=18;
+ y+=20;
  doc.setFontSize(11);
  doc.text(`Previsão de entrega: ${formatarDataBR(pedido.previsao_entrega)}`,margem,y);
 
- y+=35;
- doc.line(70,y,140,y);
+ y+=40;
+ doc.line(50,y,160,y);
  y+=8;
  doc.setFont('helvetica','normal');
  doc.text('Assinatura do Cliente',105,y,{align:'center'});

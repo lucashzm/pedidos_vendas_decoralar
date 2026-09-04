@@ -31,6 +31,13 @@ async function verificarUsuario(){
  usuarioLogado=data;
 }
 
+async function logout(){
+ await db.auth.signOut();
+ window.location.href='login.html';
+}
+
+document.getElementById('logout').onclick=logout;
+
 function renderizarLista(){
  ul.innerHTML='';
  lista.forEach((item,index)=>{const li=document.createElement('li');li.className='item-pedido';li.innerHTML=`<div class="produto-resumo"><strong>${item.sku} - ${item.produto}</strong><span>Quantidade: ${item.quantidade}</span><span>Valor unitário: ${formatarBRL(item.valor_unitario)}</span></div><button class="remover-produto" data-index="${index}">X</button>`;ul.appendChild(li);});

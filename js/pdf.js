@@ -8,6 +8,7 @@ async function gerarPDF(idPedido){
  const margem=15;
  let y=15;
  const formatarDataBR=d=>{if(!d)return '';const [a,m,di]=d.split('-');return `${di}/${m}/${a}`};
+ const formatarBRL=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
  const titulo=t=>{doc.setFont('helvetica','bold');doc.setFontSize(11);doc.text(t,margem,y);y+=7};
  const campo=(label,valor)=>{doc.setFont('helvetica','bold');doc.text(label,margem,y);const x=margem+doc.getTextWidth(label);doc.setFont('helvetica','normal');doc.text(valor||'',x,y);y+=6};
  const linha=()=>{doc.line(margem,y,195,y);y+=8};
@@ -31,7 +32,7 @@ async function gerarPDF(idPedido){
  doc.setFont('helvetica','bold');doc.text('Previsão de entrega: ',margem,y);const xPrev=margem+doc.getTextWidth('Previsão de entrega: ');doc.setFont('helvetica','normal');doc.text(formatarDataBR(pedido.previsao_entrega),xPrev,y);y+=10;
  titulo('PRODUTOS');doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text('Produto',margem,y);doc.text('Qtd',150,y);doc.text('Valor',170,y);y+=6;linha();
  itens?.forEach(i=>{doc.setFont('helvetica','bold');const l=doc.splitTextToSize(i.produto,120);doc.text(l,margem,y);doc.setFont('helvetica','normal');doc.text(String(i.quantidade),150,y);doc.text(formatarBRL(i.valor_unitario),170,y);y+=(l.length*5)+5});
- linha();titulo('RESUMO FINANCEIRO');campo('Forma de pagamento: ',pedido.forma_pagamento||'');campo('Frete: ',formatarBRL(pedido.frete||0));
+ linha();titulo('RESUMO FINANCEIRO');campo('Forma de pagamento: ',pedido.forma_pagamento||'');campo('Frete: ',formatarBRL(Math.abs(Number(pedido.frete||0))));campo('Desconto: ',formatarBRL(Math.abs(Number(pedido.desconto||0))));
  doc.setFont('helvetica','bold');doc.setFontSize(14);doc.text(`TOTAL DO PEDIDO: ${formatarBRL(pedido.valor_total||0)}`,margem,y);y+=12;
  titulo('DECLARAÇÃO DE RECEBIMENTO');
  doc.setFont('helvetica','normal');doc.setFontSize(9);

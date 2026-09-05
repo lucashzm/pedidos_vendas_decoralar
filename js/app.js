@@ -14,14 +14,19 @@ const resultadoBusca=document.getElementById('resultadoBusca');
 const ul=document.getElementById('listaProdutos');
 const totalEl=document.getElementById('total');
 const freteEl=document.getElementById('frete');
+const descontoEl=document.getElementById('desconto');
 const previsaoEntrega=document.getElementById('previsaoEntrega');
 
 function valorProduto(produto){return Number(String(produto.preco||0).replace('R$','').replace('.','').replace(',','.'))||0;}
-function valorFrete(){return Number(String(freteEl.value||0).replace('R$','').replace('.','').replace(',','.'))||0;}
+function valorCampoPositivo(valor){return Math.abs(Number(String(valor||0).replace('R$','').replace(/\./g,'').replace(',','.')))||0;}
+function valorFrete(){return valorCampoPositivo(freteEl.value);}
+function valorDesconto(){return valorCampoPositivo(descontoEl.value);}
 function formatarBRL(valor){return valor.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
 function skuProduto(index){return String(index+1).padStart(4,'0');}
-function valorTotal(){return lista.reduce((s,i)=>s+i.valor_unitario*i.quantidade,0)+valorFrete();}
+function subtotalProdutos(){return lista.reduce((s,i)=>s+i.valor_unitario*i.quantidade,0);}
+function valorTotal(){return Math.max(0,subtotalProdutos()+valorFrete()-valorDesconto());}
 function atualizarTotal(){totalEl.textContent=formatarBRL(valorTotal());}
+function normalizarCampoPositivo(campo){if(!campo.value.trim())return;const valor=valorCampoPositivo(campo.value);campo.value=valor.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});atualizarTotal();}
 
 async function verificarUsuario(){
  const {data:{user}}=await db.auth.getUser();
@@ -51,6 +56,9 @@ busca.addEventListener('input',()=>{const termo=busca.value.toLowerCase().trim()
 document.getElementById('adicionarProduto').onclick=()=>{if(!produtoSelecionado)return;lista.push({sku:skuProduto(produtoSelecionado.index),produto:produtoSelecionado.produto.nome,quantidade:Number(document.getElementById('quantidade').value||1),valor_unitario:valorProduto(produtoSelecionado.produto)});produtoSelecionado=null;busca.value='';document.getElementById('quantidade').value=1;renderizarLista();atualizarTotal();};
 
 freteEl.addEventListener('input',atualizarTotal);
+descontoEl.addEventListener('input',atualizarTotal);
+freteEl.addEventListener('blur',()=>normalizarCampoPositivo(freteEl));
+descontoEl.addEventListener('blur',()=>normalizarCampoPositivo(descontoEl));
 
 async function salvarPedido(){
  const cliente={nome:clienteNome.value,cpf_cnpj:clienteCpf.value||null,telefone:clienteTelefone.value,email:clienteEmail.value};
@@ -66,6 +74,7 @@ const pedido={
  referencia:referencia.value,
  forma_pagamento:pagamento.value,
  frete:valorFrete(),
+ desconto:valorDesconto(),
  previsao_entrega:previsaoEntrega.value,
  valor_total:valorTotal(),
  observacoes:observacoes.value,

@@ -81,6 +81,7 @@ async function gerarPDF(idPedido){
  y+=10;
 
  titulo('PRODUTOS');
+ y+=3;
  doc.setFont('helvetica','bold');
  doc.setFontSize(9);
  doc.setTextColor(95,95,95);
@@ -109,14 +110,13 @@ async function gerarPDF(idPedido){
  campo('Frete: ',formatarBRL(Math.abs(Number(pedido.frete||0))));
  campo('Desconto: ',formatarBRL(Math.abs(Number(pedido.desconto||0))));
 
- doc.setDrawColor(40,40,40);
- doc.line(120,y-2,direita,y-2);
+ y+=5;
  doc.setFont('helvetica','bold');
  doc.setFontSize(14);
  doc.setTextColor(25,25,25);
- doc.text('TOTAL DO PEDIDO',120,y+7);
+ doc.text('TOTAL DO PEDIDO',margem,y);
  doc.setFontSize(15);
- doc.text(formatarBRL(pedido.valor_total||0),direita,y+7,{align:'right'});
+ doc.text(formatarBRL(pedido.valor_total||0),direita,y,{align:'right'});
  y+=19;
 
  doc.setFont('helvetica','normal');

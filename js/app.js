@@ -28,6 +28,24 @@ function valorTotal(){return Math.max(0,subtotalProdutos()+valorFrete()-valorDes
 function atualizarTotal(){totalEl.textContent=formatarBRL(valorTotal());}
 function normalizarCampoPositivo(campo){if(!campo.value.trim())return;const valor=valorCampoPositivo(campo.value);campo.value=valor.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});atualizarTotal();}
 
+// Deixa nomes e endereços padronizados sem transformar tudo em MAIÚSCULAS.
+function capitalizarTexto(valor){
+ return String(valor||'').toLowerCase().trim().replace(/\s+/g,' ').replace(/(^|[\s-])([a-záàâãéêíóôõúç])/g,(m,esp,letra)=>esp+letra.toUpperCase()).replace(/\b(de|da|do|das|dos|e)\b/g,(m)=>m.toLowerCase()).replace(/^([a-záàâãéêíóôõúç])/,m=>m.toUpperCase());
+}
+
+const camposCapitalizados=[
+ document.getElementById('clienteNome'),
+ document.getElementById('rua'),
+ document.getElementById('bairro'),
+ document.getElementById('cidade'),
+ document.getElementById('referencia'),
+ document.getElementById('observacoes')
+].filter(Boolean);
+
+camposCapitalizados.forEach(campo=>{
+ campo.addEventListener('blur',()=>{campo.value=capitalizarTexto(campo.value);});
+});
+
 async function verificarUsuario(){
  const {data:{user}}=await db.auth.getUser();
  if(!user){window.location.href='login.html';return;}
@@ -61,6 +79,7 @@ freteEl.addEventListener('blur',()=>normalizarCampoPositivo(freteEl));
 descontoEl.addEventListener('blur',()=>normalizarCampoPositivo(descontoEl));
 
 async function salvarPedido(){
+ camposCapitalizados.forEach(campo=>{campo.value=capitalizarTexto(campo.value);});
  const cliente={nome:clienteNome.value,cpf_cnpj:clienteCpf.value||null,telefone:clienteTelefone.value,email:clienteEmail.value};
  let {data:clienteExistente}=await db.from('clientes').select('id').eq('cpf_cnpj',cliente.cpf_cnpj).maybeSingle();
  let clienteId=clienteExistente?.id;

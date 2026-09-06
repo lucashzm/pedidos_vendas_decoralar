@@ -17,6 +17,7 @@ async function gerarPDF(idPedido){
  doc.setFontSize(11);doc.text(`Pedido Nº ${pedido.numero_pedido}`,margem,y);y+=8;linha();
  titulo('CLIENTE');doc.setFont('helvetica','normal');doc.setFontSize(10);
  campo('Nome: ',cliente?.nome||'');
+ campo('CPF/CNPJ: ',cliente?.cpf_cnpj||pedido.cliente_cpf_cnpj||'');
  campo('Telefone: ',cliente?.telefone||'');
  campo('Email: ',cliente?.email||'');
  y+=4;
@@ -34,10 +35,6 @@ async function gerarPDF(idPedido){
  itens?.forEach(i=>{doc.setFont('helvetica','bold');const l=doc.splitTextToSize(i.produto,120);doc.text(l,margem,y);doc.setFont('helvetica','normal');doc.text(String(i.quantidade),150,y);doc.text(formatarBRL(i.valor_unitario),170,y);y+=(l.length*5)+5});
  linha();titulo('RESUMO FINANCEIRO');campo('Forma de pagamento: ',pedido.forma_pagamento||'');campo('Frete: ',formatarBRL(Math.abs(Number(pedido.frete||0))));campo('Desconto: ',formatarBRL(Math.abs(Number(pedido.desconto||0))));
  doc.setFont('helvetica','bold');doc.setFontSize(14);doc.text(`TOTAL DO PEDIDO: ${formatarBRL(pedido.valor_total||0)}`,margem,y);y+=12;
- titulo('DECLARAÇÃO DE RECEBIMENTO');
- doc.setFont('helvetica','normal');doc.setFontSize(9);
- const info=['Declaro que recebi os produtos relacionados neste pedido de venda, conforme especificações descritas acima.','Declaro que os produtos foram conferidos no momento do recebimento, não sendo constatadas avarias aparentes.'];
- info.forEach(t=>{const l=doc.splitTextToSize('• '+t,170);doc.text(l,margem,y);y+=(l.length*4)+3});
- y+=10;doc.line(30,y,180,y);y+=7;doc.setFontSize(10);doc.text('Assinatura do Cliente',105,y,{align:'center'});y+=10;doc.setFontSize(10);doc.setFont('helvetica','bold');doc.text('Data do recebimento: ',margem,y);const xData=margem+doc.getTextWidth('Data do recebimento: ');doc.setFont('helvetica','normal');doc.text('____/____/________',xData,y);y+=12;doc.setFontSize(8);doc.text('Documento de pedido de venda - Decoralar',105,y,{align:'center'});
- doc.save(`Pedido_${pedido.numero_pedido}.pdf`);
+ doc.setFontSize(8);doc.setFont('helvetica','normal');doc.text('Documento de pedido de venda - Decoralar',105,y,{align:'center'});
+ doc.save(`Pedido_Venda_${pedido.numero_pedido}.pdf`);
 }

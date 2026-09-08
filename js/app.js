@@ -27,6 +27,7 @@ function subtotalProdutos(){return lista.reduce((s,i)=>s+i.valor_unitario*i.quan
 function valorTotal(){return Math.max(0,subtotalProdutos()+valorFrete()-valorDesconto());}
 function atualizarTotal(){totalEl.textContent=formatarBRL(valorTotal());}
 function normalizarCampoPositivo(campo){if(!campo.value.trim())return;const valor=valorCampoPositivo(campo.value);campo.value=valor.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});atualizarTotal();}
+function normalizarCpfCnpj(valor){const digitos=String(valor||'').replace(/\D/g,'');return digitos||null;}
 
 // Deixa nomes e endereços padronizados sem transformar tudo em MAIÚSCULAS.
 function capitalizarTexto(valor){
@@ -80,10 +81,33 @@ descontoEl.addEventListener('blur',()=>normalizarCampoPositivo(descontoEl));
 
 async function salvarPedido(){
  camposCapitalizados.forEach(campo=>{campo.value=capitalizarTexto(campo.value);});
- const cliente={nome:clienteNome.value,cpf_cnpj:clienteCpf.value||null,telefone:clienteTelefone.value,email:clienteEmail.value};
- let {data:clienteExistente}=await db.from('clientes').select('id').eq('cpf_cnpj',cliente.cpf_cnpj).maybeSingle();
+ const cpfCnpj=normalizarCpfCnpj(clienteCpf.value);
+ clienteCpf.value=cpfCnpj||'';
+ const cliente={nome:clienteNome.value,cpf_cnpj:cpfCnpj,telefone:clienteTelefone.value,email:clienteEmail.value};
+ let clienteExistente=null;
+
+ if(cpfCnpj){
+   const consulta=await db.from('clientes').select('id,nome').eq('cpf_cnpj',cpfCnpj).maybeSingle();
+   if(consulta.error)throw consulta.error;
+   clienteExistente=consulta.data;
+   if(clienteExistente){
+     const nomeInformado=cliente.nome.trim().toLowerCase();
+     const nomeCadastrado=String(clienteExistente.nome||'').trim().toLowerCase();
+     if(nomeInformado&&nomeCadastrado&&nomeInformado!==nomeCadastrado){
+       throw new Error(`CPF/CNPJ já cadastrado para ${clienteExistente.nome}. Confira o CPF/CNPJ ou o nome do cliente.`);
+     }
+   }
+ }
+
  let clienteId=clienteExistente?.id;
- if(!clienteId){const r=await db.from('clientes').insert(cliente).select('id').single();if(r.error)throw r.error;clienteId=r.data.id;}
+ if(!clienteId){
+   const r=await db.from('clientes').insert(cliente).select('id').single();
+   if(r.error){
+     if(r.error.code==='23505')throw new Error('CPF/CNPJ já cadastrado. Confira os dados do cliente.');
+     throw r.error;
+   }
+   clienteId=r.data.id;
+ }
  
 const pedido={
  cliente_id:clienteId,
@@ -109,6 +133,6 @@ const pedido={
  alert(`Pedido ${p.data.numero_pedido} salvo com sucesso!`);
 }
 
-document.getElementById('finalizar').onclick=()=>salvarPedido().catch(e=>{console.error(e);alert('Erro ao salvar pedido. Veja o console.');});
+document.getElementById('finalizar').onclick=()=>salvarPedido().catch(e=>{console.error(e);alert(e.message||'Erro ao salvar pedido. Veja o console.');});
 
 verificarUsuario().then(()=>{carregarCatalogo();}).catch(e=>{console.error(e);alert('Erro ao validar usuário.');});

@@ -14,7 +14,7 @@ async function gerarPDF(idPedido){
  const secao=t=>{doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(105,105,105);doc.text(t,margem,y);y+=6};
  const campo=(label,valor)=>{doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.setTextColor(45,45,45);doc.text(label,margem,y);const x=margem+doc.getTextWidth(label)+3;doc.setFont('helvetica','normal');doc.text(valor||'—',x,y);y+=5.5};
  // Cabeçalho
- doc.setFont('helvetica','bold');doc.setFontSize(22);doc.setTextColor(35,35,35);doc.text('DECORALAR',margem,y);
+ doc.setFont('helvetica','bold');doc.setFontSize(22);doc.setTextColor(35,35,35);doc.text('BM MÓVEIS',margem,y);
  doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(130,130,130);doc.text('PEDIDO DE VENDA',direita,y-5,{align:'right'});
  doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(50,50,50);doc.text(`Nº ${pedido.numero_pedido}`,direita,y+2,{align:'right'});
  y+=10;doc.setDrawColor(45,45,45);doc.setLineWidth(.6);doc.line(margem,y,direita,y);y+=12;
@@ -44,6 +44,6 @@ async function gerarPDF(idPedido){
  doc.text('Desconto',125,y);doc.text(formatarBRL(Math.abs(Number(pedido.desconto||0))),direita,y,{align:'right'});y+=10;
  // Mantém o total como o balão da versão atual
  doc.setFillColor(55,55,55);doc.roundedRect(108,y-5,direita-108,18,2,2,'F');doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(255,255,255);doc.text('TOTAL DO PEDIDO',114,y+2);doc.setFontSize(13);doc.text(formatarBRL(pedido.valor_total||0),direita-5,y+2,{align:'right'});y+=25;
- doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(145,145,145);doc.text('Pedido de venda • Decoralar',105,y,{align:'center'});
+ doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(145,145,145);doc.text('Pedido de venda • BM Móveis',105,y,{align:'center'});
  doc.save(`Pedido_Venda_${pedido.numero_pedido}.pdf`);
 }

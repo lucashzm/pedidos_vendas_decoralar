@@ -6,6 +6,7 @@ const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let produtos=[];
 let usuarioLogado=null;
+let salvandoPedido=false;
 const lista=[];
 let produtoSelecionado=null;
 
@@ -16,6 +17,7 @@ const totalEl=document.getElementById('total');
 const freteEl=document.getElementById('frete');
 const descontoEl=document.getElementById('desconto');
 const previsaoEntrega=document.getElementById('previsaoEntrega');
+const finalizarEl=document.getElementById('finalizar');
 
 function valorProduto(produto){return Number(String(produto.preco||0).replace('R$','').replace('.','').replace(',','.'))||0;}
 function valorCampoPositivo(valor){return Math.abs(Number(String(valor||0).replace('R$','').replace(/\./g,'').replace(',','.')))||0;}
@@ -80,57 +82,70 @@ freteEl.addEventListener('blur',()=>normalizarCampoPositivo(freteEl));
 descontoEl.addEventListener('blur',()=>normalizarCampoPositivo(descontoEl));
 
 async function salvarPedido(){
- camposCapitalizados.forEach(campo=>{campo.value=capitalizarTexto(campo.value);});
- const cpfCnpj=normalizarCpfCnpj(clienteCpf.value);
- clienteCpf.value=cpfCnpj||'';
- const cliente={nome:clienteNome.value,cpf_cnpj:cpfCnpj,telefone:clienteTelefone.value,email:clienteEmail.value};
- let clienteExistente=null;
+ if(salvandoPedido)return;
+ salvandoPedido=true;
+ finalizarEl.disabled=true;
+ const textoOriginalFinalizar=finalizarEl.textContent;
+ finalizarEl.textContent='Salvando...';
+ try{
+  camposCapitalizados.forEach(campo=>{campo.value=capitalizarTexto(campo.value);});
+  const cpfCnpj=normalizarCpfCnpj(clienteCpf.value);
+  clienteCpf.value=cpfCnpj||'';
+  const cliente={nome:clienteNome.value,cpf_cnpj:cpfCnpj,telefone:clienteTelefone.value,email:clienteEmail.value};
+  let clienteExistente=null;
 
- if(cpfCnpj){
-   const consulta=await db.from('clientes').select('id,nome').eq('cpf_cnpj',cpfCnpj).maybeSingle();
-   if(consulta.error)throw consulta.error;
-   clienteExistente=consulta.data;
-   if(clienteExistente){
-     const nomeInformado=cliente.nome.trim().toLowerCase();
-     const nomeCadastrado=String(clienteExistente.nome||'').trim().toLowerCase();
-     if(nomeInformado&&nomeCadastrado&&nomeInformado!==nomeCadastrado){
-       throw new Error(`CPF/CNPJ já cadastrado para ${clienteExistente.nome}. Confira o CPF/CNPJ ou o nome do cliente.`);
-     }
-   }
- }
+  if(cpfCnpj){
+    const consulta=await db.from('clientes').select('id,nome').eq('cpf_cnpj',cpfCnpj).maybeSingle();
+    if(consulta.error)throw consulta.error;
+    clienteExistente=consulta.data;
+    if(clienteExistente){
+      const nomeInformado=cliente.nome.trim().toLowerCase();
+      const nomeCadastrado=String(clienteExistente.nome||'').trim().toLowerCase();
+      if(nomeInformado&&nomeCadastrado&&nomeInformado!==nomeCadastrado){
+        throw new Error(`CPF/CNPJ já cadastrado para ${clienteExistente.nome}. Confira o CPF/CNPJ ou o nome do cliente.`);
+      }
+    }
+  }
 
- let clienteId=clienteExistente?.id;
- if(!clienteId){
-   const r=await db.from('clientes').insert(cliente).select('id').single();
-   if(r.error){
-     if(r.error.code==='23505')throw new Error('CPF/CNPJ já cadastrado. Confira os dados do cliente.');
-     throw r.error;
-   }
-   clienteId=r.data.id;
+  let clienteId=clienteExistente?.id;
+  if(!clienteId){
+    const r=await db.from('clientes').insert(cliente).select('id').single();
+    if(r.error){
+      if(r.error.code==='23505')throw new Error('CPF/CNPJ já cadastrado. Confira os dados do cliente.');
+      throw r.error;
+    }
+    clienteId=r.data.id;
+  }
+  
+ const pedido={
+  cliente_id:clienteId,
+  user_id:usuarioLogado.id,
+  cliente_cpf_cnpj:cliente.cpf_cnpj,
+  endereco:`${cep.value}, ${rua.value}, ${numero.value}, ${bairro.value}, ${cidade.value}`,
+  referencia:referencia.value,
+  forma_pagamento:pagamento.value,
+  frete:valorFrete(),
+  desconto:valorDesconto(),
+  previsao_entrega:previsaoEntrega.value,
+  valor_total:valorTotal(),
+  observacoes:observacoes.value,
+  status_entrega:'Pendente',
+  status_financeiro:'Pendente'
+ };
+  
+  const p=await db.from('pedidos').insert(pedido).select('id, numero_pedido').single();
+  if(p.error)throw p.error;
+  const r=await db.from('pedido_itens').insert(lista.map(i=>({...i,pedido_id:p.data.id})));
+  if(r.error)throw r.error;
+  await gerarPDF(p.data.id);
+  alert(`Pedido ${p.data.numero_pedido} salvo com sucesso!`);
+  window.location.reload();
+ }catch(e){
+  salvandoPedido=false;
+  finalizarEl.disabled=false;
+  finalizarEl.textContent=textoOriginalFinalizar;
+  throw e;
  }
- 
-const pedido={
- cliente_id:clienteId,
- user_id:usuarioLogado.id,
- cliente_cpf_cnpj:cliente.cpf_cnpj,
- endereco:`${cep.value}, ${rua.value}, ${numero.value}, ${bairro.value}, ${cidade.value}`,
- referencia:referencia.value,
- forma_pagamento:pagamento.value,
- frete:valorFrete(),
- desconto:valorDesconto(),
- previsao_entrega:previsaoEntrega.value,
- valor_total:valorTotal(),
- observacoes:observacoes.value,
- status_entrega:'Pendente',
- status_financeiro:'Pendente'
-};
- 
- const p=await db.from('pedidos').insert(pedido).select('id, numero_pedido').single();
- if(p.error)throw p.error;
- const r=await db.from('pedido_itens').insert(lista.map(i=>({...i,pedido_id:p.data.id})));
- if(r.error)throw r.error;
- await gerarPDF(p.data.id);
- alert(`Pedido ${p.data.numero_pedido} salvo com sucesso!`);
 }
 
 document.getElementById('finalizar').onclick=()=>salvarPedido().catch(e=>{console.error(e);alert(e.message||'Erro ao salvar pedido. Veja o console.');});

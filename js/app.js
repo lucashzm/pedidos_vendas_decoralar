@@ -118,8 +118,8 @@ async function salvarPedido(){
       throw r.error;
     }
     clienteId=r.data.id;
-  desconto:valorDescontoTotal(),
   
+ const pedido={
   cliente_id:clienteId,
   user_id:usuarioLogado.id,
   cliente_cpf_cnpj:cliente.cpf_cnpj,
@@ -127,10 +127,10 @@ async function salvarPedido(){
   referencia:referencia.value,
   forma_pagamento:pagamento.value,
   frete:valorFrete(),
-  desconto:valorDesconto(),
+  desconto:valorDescontoTotal(),
   previsao_entrega:previsaoEntrega.value,
   valor_total:valorTotal(),
-  desconto:valorDescontoTotal(),
+  observacoes:observacoes.value,
   status_entrega:'Pendente',
   status_financeiro:'Pendente'
  };

@@ -17,13 +17,18 @@ const totalEl=document.getElementById('total');
 const freteEl=document.getElementById('frete');
 const descontoEl=document.getElementById('desconto');
 const pagamentoEl=document.getElementById('pagamento');
+const condicaoCartaoCampo=document.getElementById('condicaoCartaoCampo');
+const condicaoCartaoEl=document.getElementById('condicaoCartao');
 const previsaoEntrega=document.getElementById('previsaoEntrega');
 const finalizarEl=document.getElementById('finalizar');
 
 function valorProduto(produto){return Number(String(produto.preco||0).replace('R$','').replace('.','').replace(',','.'))||0;}
 const DESCONTO_PIX=0.04;
 function arredondarCentavos(valor){return Math.round((Number(valor)||0)*100)/100;}
-function descontoPagamento(){return pagamentoEl.value==='Pix'?arredondarCentavos(subtotalProdutos()*DESCONTO_PIX):0;}
+function descontoPagamento(){
+ const cartaoAVista=pagamentoEl.value==='Cartão'&&condicaoCartaoEl.value==='À vista';
+ return (pagamentoEl.value==='Pix'||pagamentoEl.value==='Dinheiro'||cartaoAVista)?arredondarCentavos(subtotalProdutos()*DESCONTO_PIX):0;
+}
 function valorDescontoTotal(){return arredondarCentavos(valorDesconto()+descontoPagamento());}
 function valorCampoPositivo(valor){return Math.abs(Number(String(valor||0).replace('R$','').replace(/\./g,'').replace(',','.')))||0;}
 function valorFrete(){return valorCampoPositivo(freteEl.value);}
@@ -104,7 +109,12 @@ document.getElementById('adicionarProduto').onclick=()=>{
  atualizarTotal();
 };
 
-pagamentoEl.addEventListener('change',atualizarTotal);
+pagamentoEl.addEventListener('change',()=>{
+ condicaoCartaoCampo.style.display=pagamentoEl.value==='Cartão'?'flex':'none';
+ if(pagamentoEl.value!=='Cartão')condicaoCartaoEl.value='';
+ atualizarTotal();
+});
+condicaoCartaoEl.addEventListener('change',atualizarTotal);
 freteEl.addEventListener('input',atualizarTotal);
 descontoEl.addEventListener('input',atualizarTotal);
 
@@ -150,7 +160,7 @@ async function salvarPedido(){
    cliente_cpf_cnpj:cliente.cpf_cnpj,
    endereco:`${cep.value}, ${rua.value}, ${numero.value}, ${bairro.value}, ${cidade.value}`,
    referencia:referencia.value,
-   forma_pagamento:pagamento.value,
+   forma_pagamento:pagamentoEl.value,
    frete:valorFrete(),
    desconto:valorDescontoTotal(),
    previsao_entrega:previsaoEntrega.value,

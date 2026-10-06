@@ -29,6 +29,13 @@ function descontoPagamento(){
  const cartaoAVista=pagamentoEl.value==='Cartão'&&condicaoCartaoEl.value==='À vista';
  return (pagamentoEl.value==='Pix'||pagamentoEl.value==='Dinheiro'||cartaoAVista)?arredondarCentavos(subtotalProdutos()*DESCONTO_PIX):0;
 }
+function percentualDescontoPagamento(){
+ const cartaoAVista=pagamentoEl.value==='Cartão'&&condicaoCartaoEl.value==='À vista';
+ return (pagamentoEl.value==='Pix'||pagamentoEl.value==='Dinheiro'||cartaoAVista)?DESCONTO_PIX:0;
+}
+function valorUnitarioComDesconto(item){
+ return arredondarCentavos(item.valor_unitario*(1-percentualDescontoPagamento()));
+}
 function valorDescontoTotal(){return arredondarCentavos(valorDesconto()+descontoPagamento());}
 function valorCampoPositivo(valor){return Math.abs(Number(String(valor||0).replace('R$','').replace(/\./g,'').replace(',','.')))||0;}
 function valorFrete(){return valorCampoPositivo(freteEl.value);}
@@ -37,7 +44,20 @@ function formatarBRL(valor){return valor.toLocaleString('pt-BR',{style:'currency
 function skuProduto(index){return String(index+1).padStart(4,'0');}
 function subtotalProdutos(){return lista.reduce((s,i)=>s+i.valor_unitario*i.quantidade,0);}
 function valorTotal(){return Math.max(0,arredondarCentavos(subtotalProdutos()+valorFrete()-valorDescontoTotal()));}
-function atualizarTotal(){totalEl.textContent=formatarBRL(valorTotal());const d=document.getElementById('descontoAutomatico');if(d){const v=descontoPagamento();d.textContent=v>0?'Desconto à vista no Pix: '+formatarBRL(v):'';}}
+function atualizarTotal(){
+ totalEl.textContent=formatarBRL(valorTotal());
+ const d=document.getElementById('descontoAutomatico');
+ if(d){
+  const v=descontoPagamento();
+  let texto='';
+  if(v>0){
+   const forma=pagamentoEl.value==='Pix'?'Pix':pagamentoEl.value==='Dinheiro'?'dinheiro':'cartão';
+   texto='Desconto à vista no '+forma+': '+formatarBRL(v);
+  }
+  d.textContent=texto;
+ }
+ renderizarLista();
+}
 function normalizarCpfCnpj(valor){const digitos=String(valor||'').replace(/\D/g,'');return digitos||null;}
 
 // Deixa nomes e endereços padronizados sem transformar tudo em MAIÚSCULAS.
@@ -75,7 +95,15 @@ document.getElementById('logout').onclick=logout;
 
 function renderizarLista(){
  ul.innerHTML='';
- lista.forEach((item,index)=>{const li=document.createElement('li');li.className='item-pedido';li.innerHTML=`<div class="produto-resumo"><strong>${item.sku} - ${item.produto}</strong><span>Quantidade: ${item.quantidade}</span><span>Valor unitário: ${formatarBRL(item.valor_unitario)}</span></div><button class="remover-produto" data-index="${index}">X</button>`;ul.appendChild(li);});
+ lista.forEach((item,index)=>{
+  const li=document.createElement('li');
+  li.className='item-pedido';
+  const valorBase=formatarBRL(item.valor_unitario);
+  const valorComDesconto=valorUnitarioComDesconto(item);
+  const temDesconto=valorComDesconto<item.valor_unitario;
+  li.innerHTML=`<div class="produto-resumo"><strong>${item.sku} - ${item.produto}</strong><span>Quantidade: ${item.quantidade}</span><span>Valor unitário: ${valorBase}${temDesconto?' <strong style="color:#198754">→ '+formatarBRL(valorComDesconto)+'</strong>':''}</span></div><button class="remover-produto" data-index="${index}">X</button>`;
+  ul.appendChild(li);
+ });
  document.querySelectorAll('.remover-produto').forEach(b=>b.onclick=()=>{lista.splice(Number(b.dataset.index),1);renderizarLista();atualizarTotal();});
 }
 
@@ -83,7 +111,7 @@ async function carregarCatalogo(){
  const r=await fetch(CATALOGO_URL);
  if(!r.ok)throw new Error('Não foi possível carregar o catálogo de produtos.');
  const c=await r.text();
- produtos=new Function(c+'\nreturn produtos;')();
+ produtos=new Function(c+'\\nreturn produtos;')();
 }
 
 busca.addEventListener('input',()=>{

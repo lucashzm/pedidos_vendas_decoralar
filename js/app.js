@@ -16,6 +16,7 @@ const ul=document.getElementById('listaProdutos');
 const totalEl=document.getElementById('total');
 const freteEl=document.getElementById('frete');
 const descontoEl=document.getElementById('desconto');
+const pagamentoEl=document.getElementById('pagamento');
 const previsaoEntrega=document.getElementById('previsaoEntrega');
 const finalizarEl=document.getElementById('finalizar');
 
@@ -73,16 +74,39 @@ function renderizarLista(){
  document.querySelectorAll('.remover-produto').forEach(b=>b.onclick=()=>{lista.splice(Number(b.dataset.index),1);renderizarLista();atualizarTotal();});
 }
 
-async function carregarCatalogo(){const r=await fetch(CATALOGO_URL);const c=await r.text();produtos=new Function(c+'\nreturn produtos;')();}
+async function carregarCatalogo(){
+ const r=await fetch(CATALOGO_URL);
+ if(!r.ok)throw new Error('Não foi possível carregar o catálogo de produtos.');
+ const c=await r.text();
+ produtos=new Function(c+'\nreturn produtos;')();
+}
 
-busca.addEventListener('input',()=>{const termo=busca.value.toLowerCase().trim();resultadoBusca.innerHTML='';if(!termo)return;produtos.filter((p,i)=>p.nome.toLowerCase().includes(termo)||skuProduto(i).includes(termo)).slice(0,10).forEach(p=>{const i=produtos.indexOf(p);const d=document.createElement('div');d.textContent=`${skuProduto(i)} - ${p.nome} - ${p.preco||''}`;d.onclick=()=>{produtoSelecionado={produto:p,index:i};busca.value=`${skuProduto(i)} - ${p.nome}`;resultadoBusca.innerHTML='';};resultadoBusca.appendChild(d);});});
-document.getElementById('adicionarProduto').onclick=()=>{if(!produtoSelecionado)return;lista.push({sku:skuProduto(produtoSelecionado.index),produto:produtoSelecionado.produto.nome,quantidade:Number(document.getElementById('quantidade').value||1),valor_unitario:valorProduto(produtoSelecionado.produto)});produtoSelecionado=null;busca.value='';document.getElementById('quantidade').value=1;renderizarLista();atualizarTotal();};
+busca.addEventListener('input',()=>{
+ const termo=busca.value.toLowerCase().trim();
+ resultadoBusca.innerHTML='';
+ if(!termo)return;
+ produtos.filter((p,i)=>p.nome.toLowerCase().includes(termo)||skuProduto(i).includes(termo)).slice(0,10).forEach(p=>{
+  const i=produtos.indexOf(p);
+  const d=document.createElement('div');
+  d.textContent=`${skuProduto(i)} - ${p.nome} - ${p.preco||''}`;
+  d.onclick=()=>{produtoSelecionado={produto:p,index:i};busca.value=`${skuProduto(i)} - ${p.nome}`;resultadoBusca.innerHTML='';};
+  resultadoBusca.appendChild(d);
+ });
+});
+
+document.getElementById('adicionarProduto').onclick=()=>{
+ if(!produtoSelecionado)return;
+ lista.push({sku:skuProduto(produtoSelecionado.index),produto:produtoSelecionado.produto.nome,quantidade:Number(document.getElementById('quantidade').value||1),valor_unitario:valorProduto(produtoSelecionado.produto)});
+ produtoSelecionado=null;
+ busca.value='';
+ document.getElementById('quantidade').value=1;
+ renderizarLista();
+ atualizarTotal();
+};
 
 pagamentoEl.addEventListener('change',atualizarTotal);
 freteEl.addEventListener('input',atualizarTotal);
 descontoEl.addEventListener('input',atualizarTotal);
-freteEl.addEventListener('blur',()=>normalizarCampoPositivo(freteEl));
-descontoEl.addEventListener('blur',()=>normalizarCampoPositivo(descontoEl));
 
 async function salvarPedido(){
  if(salvandoPedido)return;
@@ -118,23 +142,24 @@ async function salvarPedido(){
       throw r.error;
     }
     clienteId=r.data.id;
-  
- const pedido={
-  cliente_id:clienteId,
-  user_id:usuarioLogado.id,
-  cliente_cpf_cnpj:cliente.cpf_cnpj,
-  endereco:`${cep.value}, ${rua.value}, ${numero.value}, ${bairro.value}, ${cidade.value}`,
-  referencia:referencia.value,
-  forma_pagamento:pagamento.value,
-  frete:valorFrete(),
-  desconto:valorDescontoTotal(),
-  previsao_entrega:previsaoEntrega.value,
-  valor_total:valorTotal(),
-  observacoes:observacoes.value,
-  status_entrega:'Pendente',
-  status_financeiro:'Pendente'
- };
-  
+  }
+
+  const pedido={
+   cliente_id:clienteId,
+   user_id:usuarioLogado.id,
+   cliente_cpf_cnpj:cliente.cpf_cnpj,
+   endereco:`${cep.value}, ${rua.value}, ${numero.value}, ${bairro.value}, ${cidade.value}`,
+   referencia:referencia.value,
+   forma_pagamento:pagamento.value,
+   frete:valorFrete(),
+   desconto:valorDescontoTotal(),
+   previsao_entrega:previsaoEntrega.value,
+   valor_total:valorTotal(),
+   observacoes:observacoes.value,
+   status_entrega:'Pendente',
+   status_financeiro:'Pendente'
+  };
+
   const p=await db.from('pedidos').insert(pedido).select('id, numero_pedido').single();
   if(p.error)throw p.error;
   const r=await db.from('pedido_itens').insert(lista.map(i=>({...i,pedido_id:p.data.id})));
@@ -152,4 +177,4 @@ async function salvarPedido(){
 
 document.getElementById('finalizar').onclick=()=>salvarPedido().catch(e=>{console.error(e);alert(e.message||'Erro ao salvar pedido. Veja o console.');});
 
-verificarUsuario().then(()=>{carregarCatalogo();}).catch(e=>{console.error(e);alert('Erro ao validar usuário.');});
+verificarUsuario().then(()=>carregarCatalogo()).catch(e=>{console.error(e);alert(e.message||'Erro ao inicializar o pedido.');});

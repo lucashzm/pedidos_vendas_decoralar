@@ -147,3 +147,6 @@ button{
     padding:10px;
   }
 }
+
+
+.desconto-automatico{display:block;color:#1f7a35;font-size:12px;font-weight:600;margin:4px 2px 0;min-height:15px}

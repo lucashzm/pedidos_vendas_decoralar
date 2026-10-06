@@ -39,9 +39,9 @@ async function gerarPDF(idPedido){
  // Resumo financeiro
  secao('RESUMO');
  doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.setTextColor(45,45,45);doc.text('Forma de pagamento:',margem,y);
- doc.setFont('helvetica','normal');doc.setTextColor(75,75,75);doc.text(pedido.forma_pagamento||'—',margem+39,y);
+ doc.setFont('helvetica','normal');doc.setTextColor(75,75,75);doc.text(`${pedido.forma_pagamento||'—'}${pedido.forma_pagamento==='Pix'?' (4% à vista)':''}`,margem+39,y);
  doc.setFont('helvetica','normal');doc.setTextColor(75,75,75);doc.text('Frete',125,y);doc.text(formatarBRL(Math.abs(Number(pedido.frete||0))),direita,y,{align:'right'});y+=6;
- doc.text('Desconto',125,y);doc.text(formatarBRL(Math.abs(Number(pedido.desconto||0))),direita,y,{align:'right'});y+=10;
+ doc.text('Desconto total',125,y);doc.text(formatarBRL(Math.abs(Number(pedido.desconto||0))),direita,y,{align:'right'});y+=10;
  // Mantém o total como o balão da versão atual
  doc.setFillColor(55,55,55);doc.roundedRect(108,y-5,direita-108,18,2,2,'F');doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(255,255,255);doc.text('TOTAL DO PEDIDO',114,y+2);doc.setFontSize(13);doc.text(formatarBRL(pedido.valor_total||0),direita-5,y+2,{align:'right'});y+=25;
  doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(145,145,145);doc.text('Pedido de venda • BM Móveis',105,y,{align:'center'});

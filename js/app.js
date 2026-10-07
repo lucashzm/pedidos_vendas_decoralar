@@ -111,7 +111,7 @@ async function carregarCatalogo(){
  const r=await fetch(CATALOGO_URL);
  if(!r.ok)throw new Error('Não foi possível carregar o catálogo de produtos.');
  const c=await r.text();
- produtos=new Function(c+'\\nreturn produtos;')();
+ produtos=new Function(c+'\nreturn produtos;')();
 }
 
 busca.addEventListener('input',()=>{

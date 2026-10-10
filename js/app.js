@@ -282,7 +282,7 @@ function renderizarMeusPedidos(totalPedidos=0){
   const podeEditar=p.status_entrega==='Pendente';
   return '<article class="pedido-vendedor" data-pedido-card="'+p.id+'">'+
    '<div class="pedido-vendedor-topo"><div><small>PEDIDO</small><h3>#'+escaparHTML(p.numero_pedido)+' · '+escaparHTML(nome)+'</h3><span>Criado em '+dataBR(p.created_at)+'</span></div><strong>'+formatarBRL(p.valor_total)+'</strong></div>'+
-   '<div class="pedido-vendedor-status">'+statusBadge(p.status_entrega)+statusBadge(p.status_financeiro)+'</div>'+
+   '<div class="pedido-vendedor-status"><div class="status-identificado"><small>Status da entrega</small>'+statusBadge(p.status_entrega)+'</div><div class="status-identificado"><small>Status do pagamento</small>'+statusBadge(p.status_financeiro)+'</div></div>'+
    '<details><summary>Ver detalhes do pedido</summary><div class="pedido-vendedor-detalhes">'+
     '<p><strong>Entrega:</strong> '+escaparHTML(p.endereco||'—')+'</p><p><strong>Referência:</strong> '+escaparHTML(p.referencia||'—')+'</p>'+
     '<p><strong>Previsão:</strong> '+dataBR(p.previsao_entrega)+'</p><p><strong>Pagamento:</strong> '+escaparHTML(p.forma_pagamento||'—')+'</p>'+

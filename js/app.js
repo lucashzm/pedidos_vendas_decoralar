@@ -283,7 +283,7 @@ function renderizarMeusPedidos(){
    (podeCancelar?'<button type="button" class="botao-cancelar-pedido" data-cancelar-pedido="'+p.id+'">Cancelar pedido</button>':'')+'</div>'+
    (p.status_entrega!=='Pendente'&&!['Cancelado','Devolvido'].includes(p.status_entrega)?'<small class="aviso-cancelamento">Pedido em andamento: solicite o cancelamento à equipe pelo Painel BM.</small>':'')+
   '</article>';
- }).join('');
+ }).join('') + '<div class="paginacao-meus-pedidos"><span>Mostrando '+(totalPedidos?paginaMeusPedidos*PEDIDOS_POR_PAGINA+1:0)+'–'+Math.min((paginaMeusPedidos+1)*PEDIDOS_POR_PAGINA,totalPedidos)+' de '+totalPedidos+' pedidos</span><div><button type="button" id="paginaAnteriorMeusPedidos" '+(paginaMeusPedidos===0?'disabled':'')+'>Anterior</button><button type="button" id="paginaProximaMeusPedidos" '+((paginaMeusPedidos+1)*PEDIDOS_POR_PAGINA>=totalPedidos?'disabled':'')+'>Próxima</button></div></div>';
 }
 async function editarDadosPedido(id){
  const p=pedidosDoVendedor.find(x=>x.id===id);

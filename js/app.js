@@ -8,6 +8,8 @@ let produtos=[];
 let usuarioLogado=null;
 let salvandoPedido=false;
 let pedidosDoVendedor=[];
+let paginaMeusPedidos=0;
+const PEDIDOS_POR_PAGINA=10;
 const clienteNomeEl=document.getElementById('clienteNome');
 const clienteCpfEl=document.getElementById('clienteCpf');
 const enderecoIds=['cep','rua','numero','bairro','cidade'];
@@ -229,7 +231,7 @@ document.querySelectorAll('[data-aba]').forEach(botao=>{
   document.querySelectorAll('[data-aba]').forEach(b=>b.classList.toggle('ativa',b===botao));
   document.getElementById('novaVendaView').hidden=botao.dataset.aba!=='novaVendaView';
   document.getElementById('meusPedidosView').hidden=botao.dataset.aba!=='meusPedidosView';
-  if(botao.dataset.aba==='meusPedidosView')carregarMeusPedidos();
+  if(botao.dataset.aba==='meusPedidosView'){const caixa=document.getElementById('listaMeusPedidos');if(caixa&&!caixa.dataset.consultado)caixa.innerHTML='<p>Use os filtros e clique em Consultar para buscar seus pedidos.</p>';}
  });
 });
 
@@ -245,32 +247,39 @@ function statusBadge(status){
  const cls=String(status||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,'-');
  return '<span class="badge-pedido status-'+escaparHTML(cls)+'">'+escaparHTML(status||'—')+'</span>';
 }
-async function carregarMeusPedidos(){
+async function carregarMeusPedidos(pagina=0){
  const caixa=document.getElementById('listaMeusPedidos');
- caixa.innerHTML='<p>Carregando seus pedidos...</p>';
+ caixa.dataset.consultado='true';
+ caixa.innerHTML='<p>Consultando pedidos...</p>';
+ paginaMeusPedidos=Math.max(0,pagina);
  try{
   if(!usuarioLogado)await verificarUsuario();
-  let q=db.from('pedidos').select('id,numero_pedido,cliente_nome,cliente_id,endereco,referencia,observacoes,forma_pagamento,frete,desconto,valor_total,created_at,previsao_entrega,status_entrega,status_financeiro,pedido_itens(produto,sku,quantidade,valor_unitario),clientes(nome)').eq('user_id',usuarioLogado.id).order('created_at',{ascending:false});
+  let q=db.from('pedidos').select('id,numero_pedido,cliente_nome,cliente_id,cliente_cpf_cnpj,endereco,referencia,observacoes,forma_pagamento,frete,desconto,valor_total,created_at,previsao_entrega,status_entrega,status_financeiro,pedido_itens(produto,sku,quantidade,valor_unitario),clientes(nome)',{count:'exact'}).eq('user_id',usuarioLogado.id);
   const numero=document.getElementById('filtroNumeroMeusPedidos').value.trim();
+  const cpf=normalizarCpfCnpj(document.getElementById('filtroCpfMeusPedidos').value);
   const status=document.getElementById('filtroStatusMeusPedidos').value;
-  if(numero&&/^\d+$/.test(numero))q=q.eq('numero_pedido',Number(numero));
+  const inicio=document.getElementById('filtroDataInicialMeusPedidos').value;
+  const fim=document.getElementById('filtroDataFinalMeusPedidos').value;
+  if(numero&&/^\\d+$/.test(numero))q=q.eq('numero_pedido',Number(numero));
+  if(cpf)q=q.ilike('cliente_cpf_cnpj','%'+cpf+'%');
   if(status)q=q.eq('status_entrega',status);
-  const {data,error}=await q;
+  if(inicio)q=q.gte('created_at',inicio+'T00:00:00');
+  if(fim)q=q.lte('created_at',fim+'T23:59:59.999');
+  const offset=paginaMeusPedidos*PEDIDOS_POR_PAGINA;
+  const {data,error,count}=await q.order('created_at',{ascending:false}).range(offset,offset+PEDIDOS_POR_PAGINA-1);
   if(error)throw error;
   pedidosDoVendedor=data||[];
-  renderizarMeusPedidos();
- }catch(e){
-  console.error('Erro ao consultar meus pedidos:',e);
-  caixa.innerHTML='<p class="erro-pedidos">Não foi possível carregar seus pedidos. Tente novamente.</p>';
- }
+  renderizarMeusPedidos(count||0);
+ }catch(e){console.error('Erro ao consultar meus pedidos:',e);caixa.innerHTML='<p class="erro-pedidos">Não foi possível carregar seus pedidos. Tente novamente.</p>';}
 }
-function renderizarMeusPedidos(){
+function renderizarMeusPedidos(totalPedidos=0){
  const caixa=document.getElementById('listaMeusPedidos');
  if(!pedidosDoVendedor.length){caixa.innerHTML='<p>Nenhum pedido encontrado com esses filtros.</p>';return;}
  caixa.innerHTML=pedidosDoVendedor.map(p=>{
   const nome=p.cliente_nome||p.clientes?.nome||'Cliente';
   const itens=(p.pedido_itens||[]).map(i=>'<li>'+escaparHTML(i.produto)+' × '+escaparHTML(i.quantidade)+'</li>').join('');
   const podeCancelar=p.status_entrega==='Pendente';
+  const podeEditar=p.status_entrega==='Pendente';
   return '<article class="pedido-vendedor" data-pedido-card="'+p.id+'">'+
    '<div class="pedido-vendedor-topo"><div><small>PEDIDO</small><h3>#'+escaparHTML(p.numero_pedido)+' · '+escaparHTML(nome)+'</h3><span>Criado em '+dataBR(p.created_at)+'</span></div><strong>'+formatarBRL(p.valor_total)+'</strong></div>'+
    '<div class="pedido-vendedor-status">'+statusBadge(p.status_entrega)+statusBadge(p.status_financeiro)+'</div>'+
@@ -279,15 +288,18 @@ function renderizarMeusPedidos(){
     '<p><strong>Previsão:</strong> '+dataBR(p.previsao_entrega)+'</p><p><strong>Pagamento:</strong> '+escaparHTML(p.forma_pagamento||'—')+'</p>'+
     '<p><strong>Frete:</strong> '+formatarBRL(p.frete)+' · <strong>Desconto:</strong> '+formatarBRL(p.desconto)+'</p>'+
     '<ul>'+itens+'</ul><p><strong>Observações:</strong> '+escaparHTML(p.observacoes||'—')+'</p></div></details>'+
-   '<div class="acoes-pedido-vendedor"><button type="button" data-editar-pedido="'+p.id+'">Editar nome/endereço</button>'+
+   '<div class="acoes-pedido-vendedor">'+(podeEditar?'<button type="button" data-editar-pedido="'+p.id+'">Editar nome/endereço</button>':'<span class="aviso-cancelamento">Pedido em movimentação: edição bloqueada.</span>')+
    (podeCancelar?'<button type="button" class="botao-cancelar-pedido" data-cancelar-pedido="'+p.id+'">Cancelar pedido</button>':'')+'</div>'+
    (p.status_entrega!=='Pendente'&&!['Cancelado','Devolvido'].includes(p.status_entrega)?'<small class="aviso-cancelamento">Pedido em andamento: solicite o cancelamento à equipe pelo Painel BM.</small>':'')+
   '</article>';
  }).join('') + '<div class="paginacao-meus-pedidos"><span>Mostrando '+(totalPedidos?paginaMeusPedidos*PEDIDOS_POR_PAGINA+1:0)+'–'+Math.min((paginaMeusPedidos+1)*PEDIDOS_POR_PAGINA,totalPedidos)+' de '+totalPedidos+' pedidos</span><div><button type="button" id="paginaAnteriorMeusPedidos" '+(paginaMeusPedidos===0?'disabled':'')+'>Anterior</button><button type="button" id="paginaProximaMeusPedidos" '+((paginaMeusPedidos+1)*PEDIDOS_POR_PAGINA>=totalPedidos?'disabled':'')+'>Próxima</button></div></div>';
+ caixa.innerHTML += '<div class="paginacao-meus-pedidos"><span>Mostrando '+(totalPedidos?paginaMeusPedidos*PEDIDOS_POR_PAGINA+1:0)+'–'+Math.min((paginaMeusPedidos+1)*PEDIDOS_POR_PAGINA,totalPedidos)+' de '+totalPedidos+' pedidos</span><div><button type="button" id="paginaAnteriorMeusPedidos" '+(paginaMeusPedidos===0?'disabled':'')+'>Anterior</button><button type="button" id="paginaProximaMeusPedidos" '+((paginaMeusPedidos+1)*PEDIDOS_POR_PAGINA>=totalPedidos?'disabled':'')+'>Próxima</button></div></div>';
+
 }
 async function editarDadosPedido(id){
  const p=pedidosDoVendedor.find(x=>x.id===id);
  if(!p)return;
+ if(p.status_entrega!=='Pendente'){alert('Não é possível editar um pedido que já está em movimentação.');return;}
  const nomeAtual=p.cliente_nome||p.clientes?.nome||'';
  const novoNome=prompt('Nome do cliente:',nomeAtual);
  if(novoNome===null)return;
@@ -329,10 +341,12 @@ async function cancelarMeuPedido(id){
   alert(e.message||'Não foi possível cancelar. Atualize a lista e tente novamente.');
  }
 }
-document.getElementById('atualizarMeusPedidos')?.addEventListener('click',carregarMeusPedidos);
+document.getElementById('atualizarMeusPedidos')?.addEventListener('click',()=>carregarMeusPedidos(0));
 document.getElementById('filtroNumeroMeusPedidos')?.addEventListener('keydown',e=>{if(e.key==='Enter')carregarMeusPedidos();});
-document.getElementById('filtroStatusMeusPedidos')?.addEventListener('change',carregarMeusPedidos);
+
 document.getElementById('listaMeusPedidos')?.addEventListener('click',e=>{
+ if(e.target.id==='paginaAnteriorMeusPedidos')carregarMeusPedidos(paginaMeusPedidos-1);
+ if(e.target.id==='paginaProximaMeusPedidos')carregarMeusPedidos(paginaMeusPedidos+1);
  const editar=e.target.closest('[data-editar-pedido]');
  const cancelar=e.target.closest('[data-cancelar-pedido]');
  if(editar)editarDadosPedido(editar.dataset.editarPedido);

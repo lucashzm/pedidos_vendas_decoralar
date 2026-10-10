@@ -7,6 +7,10 @@ const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let produtos=[];
 let usuarioLogado=null;
 let salvandoPedido=false;
+let pedidosDoVendedor=[];
+const clienteNomeEl=document.getElementById('clienteNome');
+const clienteCpfEl=document.getElementById('clienteCpf');
+const enderecoIds=['cep','rua','numero','bairro','cidade'];
 const lista=[];
 let produtoSelecionado=null;
 
@@ -154,9 +158,9 @@ async function salvarPedido(){
  finalizarEl.textContent='Salvando...';
  try{
   camposCapitalizados.forEach(campo=>{campo.value=capitalizarTexto(campo.value);});
-  const cpfCnpj=normalizarCpfCnpj(clienteCpf.value);
-  clienteCpf.value=cpfCnpj||'';
-  const cliente={nome:clienteNome.value,cpf_cnpj:cpfCnpj,telefone:clienteTelefone.value,email:clienteEmail.value};
+  const cpfCnpj=normalizarCpfCnpj(clienteCpfEl.value);
+  clienteCpfEl.value=cpfCnpj||'';
+  const cliente={nome:clienteNomeEl.value,cpf_cnpj:cpfCnpj,telefone:document.getElementById('clienteTelefone').value,email:document.getElementById('clienteEmail').value};
   let clienteExistente=null;
 
   if(cpfCnpj){
@@ -184,6 +188,7 @@ async function salvarPedido(){
 
   const pedido={
    cliente_id:clienteId,
+   cliente_nome:cliente.nome,
    user_id:usuarioLogado.id,
    cliente_cpf_cnpj:cliente.cpf_cnpj,
    endereco:`${cep.value}, ${rua.value}, ${numero.value}, ${bairro.value}, ${cidade.value}`,
@@ -216,3 +221,120 @@ async function salvarPedido(){
 document.getElementById('finalizar').onclick=()=>salvarPedido().catch(e=>{console.error(e);alert(e.message||'Erro ao salvar pedido. Veja o console.');});
 
 verificarUsuario().then(()=>carregarCatalogo()).catch(e=>{console.error(e);alert(e.message||'Erro ao inicializar o pedido.');});
+
+
+// Navegação entre criação de pedido e consulta dos pedidos do vendedor.
+document.querySelectorAll('[data-aba]').forEach(botao=>{
+ botao.addEventListener('click',()=>{
+  document.querySelectorAll('[data-aba]').forEach(b=>b.classList.toggle('ativa',b===botao));
+  document.getElementById('novaVendaView').hidden=botao.dataset.aba!=='novaVendaView';
+  document.getElementById('meusPedidosView').hidden=botao.dataset.aba!=='meusPedidosView';
+  if(botao.dataset.aba==='meusPedidosView')carregarMeusPedidos();
+ });
+});
+
+function escaparHTML(valor){
+ return String(valor??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function dataBR(valor){
+ if(!valor)return '—';
+ const d=String(valor).slice(0,10).split('-');
+ return d.length===3?d[2]+'/'+d[1]+'/'+d[0]:String(valor);
+}
+function statusBadge(status){
+ const cls=String(status||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,'-');
+ return '<span class="badge-pedido status-'+escaparHTML(cls)+'">'+escaparHTML(status||'—')+'</span>';
+}
+async function carregarMeusPedidos(){
+ const caixa=document.getElementById('listaMeusPedidos');
+ caixa.innerHTML='<p>Carregando seus pedidos...</p>';
+ try{
+  if(!usuarioLogado)await verificarUsuario();
+  let q=db.from('pedidos').select('id,numero_pedido,cliente_nome,cliente_id,endereco,referencia,observacoes,forma_pagamento,frete,desconto,valor_total,created_at,previsao_entrega,status_entrega,status_financeiro,pedido_itens(produto,sku,quantidade,valor_unitario),clientes(nome)').eq('user_id',usuarioLogado.id).order('created_at',{ascending:false});
+  const numero=document.getElementById('filtroNumeroMeusPedidos').value.trim();
+  const status=document.getElementById('filtroStatusMeusPedidos').value;
+  if(numero&&/^\d+$/.test(numero))q=q.eq('numero_pedido',Number(numero));
+  if(status)q=q.eq('status_entrega',status);
+  const {data,error}=await q;
+  if(error)throw error;
+  pedidosDoVendedor=data||[];
+  renderizarMeusPedidos();
+ }catch(e){
+  console.error('Erro ao consultar meus pedidos:',e);
+  caixa.innerHTML='<p class="erro-pedidos">Não foi possível carregar seus pedidos. Tente novamente.</p>';
+ }
+}
+function renderizarMeusPedidos(){
+ const caixa=document.getElementById('listaMeusPedidos');
+ if(!pedidosDoVendedor.length){caixa.innerHTML='<p>Nenhum pedido encontrado com esses filtros.</p>';return;}
+ caixa.innerHTML=pedidosDoVendedor.map(p=>{
+  const nome=p.cliente_nome||p.clientes?.nome||'Cliente';
+  const itens=(p.pedido_itens||[]).map(i=>'<li>'+escaparHTML(i.produto)+' × '+escaparHTML(i.quantidade)+'</li>').join('');
+  const podeCancelar=p.status_entrega==='Pendente';
+  return '<article class="pedido-vendedor" data-pedido-card="'+p.id+'">'+
+   '<div class="pedido-vendedor-topo"><div><small>PEDIDO</small><h3>#'+escaparHTML(p.numero_pedido)+' · '+escaparHTML(nome)+'</h3><span>Criado em '+dataBR(p.created_at)+'</span></div><strong>'+formatarBRL(p.valor_total)+'</strong></div>'+
+   '<div class="pedido-vendedor-status">'+statusBadge(p.status_entrega)+statusBadge(p.status_financeiro)+'</div>'+
+   '<details><summary>Ver detalhes do pedido</summary><div class="pedido-vendedor-detalhes">'+
+    '<p><strong>Entrega:</strong> '+escaparHTML(p.endereco||'—')+'</p><p><strong>Referência:</strong> '+escaparHTML(p.referencia||'—')+'</p>'+
+    '<p><strong>Previsão:</strong> '+dataBR(p.previsao_entrega)+'</p><p><strong>Pagamento:</strong> '+escaparHTML(p.forma_pagamento||'—')+'</p>'+
+    '<p><strong>Frete:</strong> '+formatarBRL(p.frete)+' · <strong>Desconto:</strong> '+formatarBRL(p.desconto)+'</p>'+
+    '<ul>'+itens+'</ul><p><strong>Observações:</strong> '+escaparHTML(p.observacoes||'—')+'</p></div></details>'+
+   '<div class="acoes-pedido-vendedor"><button type="button" data-editar-pedido="'+p.id+'">Editar nome/endereço</button>'+
+   (podeCancelar?'<button type="button" class="botao-cancelar-pedido" data-cancelar-pedido="'+p.id+'">Cancelar pedido</button>':'')+'</div>'+
+   (p.status_entrega!=='Pendente'&&!['Cancelado','Devolvido'].includes(p.status_entrega)?'<small class="aviso-cancelamento">Pedido em andamento: solicite o cancelamento à equipe pelo Painel BM.</small>':'')+
+  '</article>';
+ }).join('');
+}
+async function editarDadosPedido(id){
+ const p=pedidosDoVendedor.find(x=>x.id===id);
+ if(!p)return;
+ const nomeAtual=p.cliente_nome||p.clientes?.nome||'';
+ const novoNome=prompt('Nome do cliente:',nomeAtual);
+ if(novoNome===null)return;
+ if(!novoNome.trim()){alert('Informe o nome do cliente.');return;}
+ const enderecoAtual=p.endereco||'';
+ const novoEndereco=prompt('Endereço completo para entrega:',enderecoAtual);
+ if(novoEndereco===null)return;
+ if(!novoEndereco.trim()){alert('Informe o endereço de entrega.');return;}
+ const {error}=await db.from('pedidos').update({cliente_nome:capitalizarTexto(novoNome),endereco:novoEndereco.trim()}).eq('id',id).eq('user_id',usuarioLogado.id);
+ if(error){console.error(error);alert('Não foi possível salvar as alterações.');return;}
+ alert('Dados do pedido atualizados.');
+ await carregarMeusPedidos();
+}
+async function cancelarMeuPedido(id){
+ const p=pedidosDoVendedor.find(x=>x.id===id);
+ if(!p)return;
+ if(p.status_entrega!=='Pendente'){alert('Só é possível cancelar diretamente pedidos com status Pendente. Para pedidos em andamento, solicite o cancelamento à equipe pelo Painel BM.');return;}
+ const motivo=prompt('Informe o motivo do cancelamento:');
+ if(motivo===null)return;
+ if(!motivo.trim()){alert('O motivo do cancelamento é obrigatório.');return;}
+ const senha=prompt('Digite sua senha para confirmar o cancelamento:');
+ if(senha===null)return;
+ if(!senha){alert('A senha é obrigatória.');return;}
+ const confirmar=confirm('Confirma o cancelamento do pedido #'+p.numero_pedido+'? Esta ação não pode ser desfeita.');
+ if(!confirmar)return;
+ try{
+  const {data:{user},error:userError}=await db.auth.getUser();
+  if(userError||!user)throw new Error('Sessão expirada. Entre novamente.');
+  const validacao=await db.auth.signInWithPassword({email:user.email,password:senha});
+  if(validacao.error)throw new Error('Senha inválida.');
+  const nota='\n[Cancelamento pelo vendedor '+new Date().toLocaleString('pt-BR')+'] Motivo: '+motivo.trim();
+  const observacoes=(p.observacoes||'')+nota;
+  const {error}=await db.from('pedidos').update({status_entrega:'Cancelado',status_financeiro:'Cancelado',observacoes}).eq('id',id).eq('user_id',usuarioLogado.id).eq('status_entrega','Pendente');
+  if(error)throw error;
+  alert('Pedido cancelado.');
+  await carregarMeusPedidos();
+ }catch(e){
+  console.error('Erro ao cancelar pedido:',e);
+  alert(e.message||'Não foi possível cancelar. Atualize a lista e tente novamente.');
+ }
+}
+document.getElementById('atualizarMeusPedidos')?.addEventListener('click',carregarMeusPedidos);
+document.getElementById('filtroNumeroMeusPedidos')?.addEventListener('keydown',e=>{if(e.key==='Enter')carregarMeusPedidos();});
+document.getElementById('filtroStatusMeusPedidos')?.addEventListener('change',carregarMeusPedidos);
+document.getElementById('listaMeusPedidos')?.addEventListener('click',e=>{
+ const editar=e.target.closest('[data-editar-pedido]');
+ const cancelar=e.target.closest('[data-cancelar-pedido]');
+ if(editar)editarDadosPedido(editar.dataset.editarPedido);
+ if(cancelar)cancelarMeuPedido(cancelar.dataset.cancelarPedido);
+});

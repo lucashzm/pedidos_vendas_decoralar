@@ -293,7 +293,6 @@ function renderizarMeusPedidos(totalPedidos=0){
    (p.status_entrega!=='Pendente'&&!['Cancelado','Devolvido'].includes(p.status_entrega)?'<small class="aviso-cancelamento">Para solicitar alterações ou cancelamento, entre em contato com a equipe pelo Painel BM.</small>':'')+
   '</article>';
  }).join('') + '<div class="paginacao-meus-pedidos"><span>Mostrando '+(totalPedidos?paginaMeusPedidos*PEDIDOS_POR_PAGINA+1:0)+'–'+Math.min((paginaMeusPedidos+1)*PEDIDOS_POR_PAGINA,totalPedidos)+' de '+totalPedidos+' pedidos</span><div><button type="button" id="paginaAnteriorMeusPedidos" '+(paginaMeusPedidos===0?'disabled':'')+'>Anterior</button><button type="button" id="paginaProximaMeusPedidos" '+((paginaMeusPedidos+1)*PEDIDOS_POR_PAGINA>=totalPedidos?'disabled':'')+'>Próxima</button></div></div>';
- caixa.innerHTML += '<div class="paginacao-meus-pedidos"><span>Mostrando '+(totalPedidos?paginaMeusPedidos*PEDIDOS_POR_PAGINA+1:0)+'–'+Math.min((paginaMeusPedidos+1)*PEDIDOS_POR_PAGINA,totalPedidos)+' de '+totalPedidos+' pedidos</span><div><button type="button" id="paginaAnteriorMeusPedidos" '+(paginaMeusPedidos===0?'disabled':'')+'>Anterior</button><button type="button" id="paginaProximaMeusPedidos" '+((paginaMeusPedidos+1)*PEDIDOS_POR_PAGINA>=totalPedidos?'disabled':'')+'>Próxima</button></div></div>';
 
 }
 async function editarDadosPedido(id){

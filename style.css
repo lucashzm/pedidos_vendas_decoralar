@@ -150,3 +150,42 @@ button{
 
 
 .desconto-automatico{display:block;color:#1f7a35;font-size:12px;font-weight:600;margin:4px 2px 0;min-height:15px}
+
+
+/* Navegação e consulta dos pedidos do vendedor */
+.abas-app{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 18px}
+.abas-app .aba-app{background:#e3eaf2;color:#29415c;font-weight:700}
+.abas-app .aba-app.ativa{background:#0d4f91;color:#fff}
+.texto-ajuda{color:#526276;line-height:1.5}
+.filtros-pedidos{display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end;margin-bottom:18px}
+.lista-meus-pedidos{display:grid;gap:14px}
+.pedido-vendedor{border:1px solid #dbe2ea;border-radius:12px;padding:16px;background:#fff}
+.pedido-vendedor-topo{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}
+.pedido-vendedor-topo small{font-size:11px;color:#68788b;letter-spacing:.08em}
+.pedido-vendedor-topo h3{margin:4px 0;font-size:17px;overflow-wrap:anywhere}
+.pedido-vendedor-topo span{font-size:12px;color:#68788b}
+.pedido-vendedor-topo>strong{white-space:nowrap}
+.pedido-vendedor-status{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+.badge-pedido{display:inline-flex;border-radius:20px;padding:5px 10px;background:#edf1f5;color:#334155;font-size:12px;font-weight:700}
+.status-pendente{background:#fff4d6;color:#805b00}
+.status-reservado{background:#e8f1ff;color:#174a8b}
+.status-aguardando-recolhimento{background:#f0e9ff;color:#6039a0}
+.status-em-transito{background:#e3f4ff;color:#075985}
+.status-concluido{background:#e4f7e9;color:#176534}
+.status-cancelado,.status-devolvido{background:#fee8e7;color:#a12622}
+.pedido-vendedor details{border-top:1px solid #edf0f3;padding-top:12px}
+.pedido-vendedor summary{cursor:pointer;font-weight:700;color:#0d4f91}
+.pedido-vendedor-detalhes{padding-top:8px;overflow-wrap:anywhere}
+.pedido-vendedor-detalhes p{font-size:13px;line-height:1.5;margin:8px 0}
+.pedido-vendedor-detalhes ul{padding-left:20px}
+.acoes-pedido-vendedor{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.acoes-pedido-vendedor button{font-size:13px}
+.acoes-pedido-vendedor .botao-cancelar-pedido{background:#a12622}
+.aviso-cancelamento{display:block;margin-top:10px;line-height:1.4;color:#805b00}
+.erro-pedidos{color:#a12622}
+[hidden]{display:none!important}
+@media(max-width:700px){
+ .filtros-pedidos{grid-template-columns:1fr}
+ .pedido-vendedor{padding:13px}
+ .pedido-vendedor-topo{flex-direction:column}
+}

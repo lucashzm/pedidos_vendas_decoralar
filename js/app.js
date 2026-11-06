@@ -1,4 +1,7 @@
-const CATALOGO_URL = 'https://raw.githubusercontent.com/lucashzm/Catalogo_online_Decoralar/main/produtos.js';
+const CATALOGO_URLS = [
+ 'https://raw.githubusercontent.com/lucashzm/Catalogo_online_Decoralar/main/produtos.js',
+ 'https://cdn.jsdelivr.net/gh/lucashzm/Catalogo_online_Decoralar@main/produtos.js'
+];
 const SUPABASE_URL = 'https://hpjiwmmslyvuqrkllmvb.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_bx1NzXS3nlgFK-te-Nuk9g_6n0j4htx';
 
@@ -27,6 +30,7 @@ const condicaoCartaoCampo=document.getElementById('condicaoCartaoCampo');
 const condicaoCartaoEl=document.getElementById('condicaoCartao');
 const previsaoEntrega=document.getElementById('previsaoEntrega');
 const finalizarEl=document.getElementById('finalizar');
+const taxaParcelamentoEl=document.getElementById('taxaParcelamento');
 
 function valorProduto(produto){return Number(String(produto.preco||0).replace('R$','').replace('.','').replace(',','.'))||0;}
 const DESCONTO_PIX=0.04;
@@ -43,15 +47,26 @@ function valorUnitarioComDesconto(item){
  return arredondarCentavos(item.valor_unitario*(1-percentualDescontoPagamento()));
 }
 function valorDescontoTotal(){return arredondarCentavos(valorDesconto()+descontoPagamento());}
+function percentualTaxaParcelamento(){
+ if(pagamentoEl.value!=='Cartão'||!/^[0-9]+x$/.test(condicaoCartaoEl.value))return 0;
+ const parcelas=Number(condicaoCartaoEl.value.replace('x',''));
+ return parcelas>0?parcelas*0.01:0;
+}
+function baseSemTaxa(){return Math.max(0,arredondarCentavos(subtotalProdutos()+valorFrete()-valorDescontoTotal()));}
+function valorTaxaParcelamento(){return arredondarCentavos(baseSemTaxa()*percentualTaxaParcelamento());}
 function valorCampoPositivo(valor){return Math.abs(Number(String(valor||0).replace('R$','').replace(/\./g,'').replace(',','.')))||0;}
 function valorFrete(){return valorCampoPositivo(freteEl.value);}
 function valorDesconto(){return valorCampoPositivo(descontoEl.value);}
 function formatarBRL(valor){return valor.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
 function skuProduto(index){return String(index+1).padStart(4,'0');}
 function subtotalProdutos(){return lista.reduce((s,i)=>s+i.valor_unitario*i.quantidade,0);}
-function valorTotal(){return Math.max(0,arredondarCentavos(subtotalProdutos()+valorFrete()-valorDescontoTotal()));}
+function valorTotal(){return arredondarCentavos(baseSemTaxa()+valorTaxaParcelamento());}
 function atualizarTotal(){
  totalEl.textContent=formatarBRL(valorTotal());
+ if(taxaParcelamentoEl){
+  const taxa=valorTaxaParcelamento();
+  taxaParcelamentoEl.textContent=taxa>0?'Taxa de parcelamento ('+condicaoCartaoEl.value+'): '+formatarBRL(taxa):'';
+ }
  const d=document.getElementById('descontoAutomatico');
  if(d){
   const v=descontoPagamento();
@@ -114,10 +129,20 @@ function renderizarLista(){
 }
 
 async function carregarCatalogo(){
- const r=await fetch(CATALOGO_URL);
- if(!r.ok)throw new Error('Não foi possível carregar o catálogo de produtos.');
- const c=await r.text();
- produtos=new Function(c+'\nreturn produtos;')();
+ let conteudo=null;
+ let ultimoErro=null;
+ for(const url of CATALOGO_URLS){
+  try{
+   const resposta=await fetch(url,{cache:'no-store'});
+   if(!resposta.ok)throw new Error('Fonte de produtos respondeu HTTP '+resposta.status);
+   conteudo=await resposta.text();
+   if(!conteudo.trim())throw new Error('A fonte de produtos retornou conteúdo vazio.');
+   break;
+  }catch(erro){ultimoErro=erro;}
+ }
+ if(!conteudo)throw new Error('Não foi possível carregar os produtos. Verifique a conexão e tente novamente. '+(ultimoErro?.message||''));
+ produtos=new Function(conteudo+'\nreturn produtos;')();
+ if(!Array.isArray(produtos))throw new Error('A lista de produtos recebida está em formato inválido.');
 }
 
 busca.addEventListener('input',()=>{
@@ -196,6 +221,8 @@ async function salvarPedido(){
    endereco:`${cep.value}, ${rua.value}, ${numero.value}, ${bairro.value}, ${cidade.value}`,
    referencia:referencia.value,
    forma_pagamento:pagamentoEl.value,
+   condicao_cartao:pagamentoEl.value==='Cartão'?(condicaoCartaoEl.value||null):null,
+   taxa_parcelamento:valorTaxaParcelamento(),
    frete:valorFrete(),
    desconto:valorDescontoTotal(),
    previsao_entrega:previsaoEntrega.value,
@@ -205,12 +232,15 @@ async function salvarPedido(){
    status_financeiro:'Pendente'
   };
 
-  const p=await db.from('pedidos').insert(pedido).select('id, numero_pedido').single();
+  const p=await db.rpc('criar_pedido_com_itens',{
+   p_pedido:pedido,
+   p_itens:lista.map(i=>({sku:i.sku,produto:i.produto,quantidade:i.quantidade,valor_unitario:i.valor_unitario}))
+  });
   if(p.error)throw p.error;
-  const r=await db.from('pedido_itens').insert(lista.map(i=>({...i,pedido_id:p.data.id})));
-  if(r.error)throw r.error;
-  await gerarPDF(p.data.id);
-  alert(`Pedido ${p.data.numero_pedido} salvo com sucesso!`);
+  const pedidoCriado=Array.isArray(p.data)?p.data[0]:p.data;
+  if(!pedidoCriado?.id)throw new Error('O banco não retornou o pedido criado.');
+  await gerarPDF(pedidoCriado.id);
+  alert(`Pedido ${pedidoCriado.numero_pedido} salvo com sucesso!`);
   window.location.reload();
  }catch(e){
   salvandoPedido=false;
@@ -254,7 +284,7 @@ async function carregarMeusPedidos(pagina=0){
  paginaMeusPedidos=Math.max(0,pagina);
  try{
   if(!usuarioLogado)await verificarUsuario();
-  let q=db.from('pedidos').select('id,numero_pedido,cliente_nome,cliente_id,cliente_cpf_cnpj,endereco,referencia,observacoes,forma_pagamento,frete,desconto,valor_total,created_at,previsao_entrega,status_entrega,status_financeiro,pedido_itens(produto,sku,quantidade,valor_unitario),clientes(nome)',{count:'exact'}).eq('user_id',usuarioLogado.id);
+  let q=db.from('pedidos').select('id,numero_pedido,cliente_nome,cliente_id,cliente_cpf_cnpj,endereco,referencia,observacoes,forma_pagamento,frete,desconto,condicao_cartao,taxa_parcelamento,valor_total,created_at,previsao_entrega,status_entrega,status_financeiro,pedido_itens(produto,sku,quantidade,valor_unitario),clientes(nome)',{count:'exact'}).eq('user_id',usuarioLogado.id);
   const numero=document.getElementById('filtroNumeroMeusPedidos').value.trim();
   const cpf=normalizarCpfCnpj(document.getElementById('filtroCpfMeusPedidos').value);
   const status=document.getElementById('filtroStatusMeusPedidos').value;
@@ -287,6 +317,7 @@ function renderizarMeusPedidos(totalPedidos=0){
     '<p><strong>Entrega:</strong> '+escaparHTML(p.endereco||'—')+'</p><p><strong>Referência:</strong> '+escaparHTML(p.referencia||'—')+'</p>'+
     '<p><strong>Previsão:</strong> '+dataBR(p.previsao_entrega)+'</p><p><strong>Pagamento:</strong> '+escaparHTML(p.forma_pagamento||'—')+'</p>'+
     '<p><strong>Frete:</strong> '+formatarBRL(p.frete)+' · <strong>Desconto:</strong> '+formatarBRL(p.desconto)+'</p>'+
+    (p.taxa_parcelamento>0?'<p><strong>Parcelamento:</strong> '+escaparHTML(p.condicao_cartao||'')+' · Taxa: '+formatarBRL(p.taxa_parcelamento)+'</p>':'')+
     '<ul>'+itens+'</ul><p><strong>Observações:</strong> '+escaparHTML(p.observacoes||'—')+'</p></div></details>'+
    '<div class="acoes-pedido-vendedor">'+(podeEditar?'<button type="button" data-editar-pedido="'+p.id+'">Editar nome/endereço</button>':'<span class="aviso-cancelamento">Pedido em movimentação: para solicitar alterações, entre em contato com a equipe pelo Painel BM.</span>')+
    (podeCancelar?'<button type="button" class="botao-cancelar-pedido" data-cancelar-pedido="'+p.id+'">Cancelar pedido</button>':'')+'</div>'+

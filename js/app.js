@@ -48,7 +48,7 @@ function valorUnitarioComDesconto(item){
 }
 function valorDescontoTotal(){return arredondarCentavos(valorDesconto()+descontoPagamento());}
 function percentualTaxaParcelamento(){
- if(pagamentoEl.value!=='Cartão'||!/^\\d+x$/.test(condicaoCartaoEl.value))return 0;
+ if(pagamentoEl.value!=='Cartão'||!/^[0-9]+x$/.test(condicaoCartaoEl.value))return 0;
  const parcelas=Number(condicaoCartaoEl.value.replace('x',''));
  return parcelas>0?parcelas*0.01:0;
 }

@@ -141,7 +141,7 @@ async function carregarCatalogo(){
   }catch(erro){ultimoErro=erro;}
  }
  if(!conteudo)throw new Error('Não foi possível carregar os produtos. Verifique a conexão e tente novamente. '+(ultimoErro?.message||''));
- produtos=new Function(conteudo+'\\nreturn produtos;')();
+ produtos=new Function(conteudo+'\nreturn produtos;')();
  if(!Array.isArray(produtos))throw new Error('A lista de produtos recebida está em formato inválido.');
 }
 

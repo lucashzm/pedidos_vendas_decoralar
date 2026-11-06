@@ -129,10 +129,20 @@ function renderizarLista(){
 }
 
 async function carregarCatalogo(){
- const r=await fetch(CATALOGO_URL);
- if(!r.ok)throw new Error('Não foi possível carregar o catálogo de produtos.');
- const c=await r.text();
- produtos=new Function(c+'\nreturn produtos;')();
+ let conteudo=null;
+ let ultimoErro=null;
+ for(const url of CATALOGO_URLS){
+  try{
+   const resposta=await fetch(url,{cache:'no-store'});
+   if(!resposta.ok)throw new Error('Fonte de produtos respondeu HTTP '+resposta.status);
+   conteudo=await resposta.text();
+   if(!conteudo.trim())throw new Error('A fonte de produtos retornou conteúdo vazio.');
+   break;
+  }catch(erro){ultimoErro=erro;}
+ }
+ if(!conteudo)throw new Error('Não foi possível carregar os produtos. Verifique a conexão e tente novamente. '+(ultimoErro?.message||''));
+ produtos=new Function(conteudo+'\\nreturn produtos;')();
+ if(!Array.isArray(produtos))throw new Error('A lista de produtos recebida está em formato inválido.');
 }
 
 busca.addEventListener('input',()=>{

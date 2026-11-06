@@ -284,7 +284,8 @@ async function carregarMeusPedidos(pagina=0){
  paginaMeusPedidos=Math.max(0,pagina);
  try{
   if(!usuarioLogado)await verificarUsuario();
-  let q=db.from('pedidos').select('id,numero_pedido,cliente_nome,cliente_id,cliente_cpf_cnpj,endereco,referencia,observacoes,forma_pagamento,frete,desconto,condicao_cartao,taxa_parcelamento,valor_total,created_at,previsao_entrega,status_entrega,status_financeiro,pedido_itens(produto,sku,quantidade,valor_unitario),clientes(nome)',{count:'exact'}).eq('user_id',usuarioLogado.id);
+  let q=db.from('pedidos').select('id,numero_pedido,cliente_nome,cliente_id,cliente_cpf_cnpj,endereco,referencia,observacoes,forma_pagamento,frete,desconto,condicao_cartao,taxa_parcelamento,valor_total,created_at,previsao_entrega,status_entrega,status_financeiro,pedido_itens(produto,sku,quantidade,valor_unitario),clientes(nome)',{count:'exact'});
+  if(usuarioLogado.cargo==='vendedor')q=q.eq('user_id',usuarioLogado.id);
   const numero=document.getElementById('filtroNumeroMeusPedidos').value.trim();
   const cpf=normalizarCpfCnpj(document.getElementById('filtroCpfMeusPedidos').value);
   const status=document.getElementById('filtroStatusMeusPedidos').value;

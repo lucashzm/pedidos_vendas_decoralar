@@ -196,3 +196,72 @@ button{
 .paginacao-meus-pedidos>div{display:flex;gap:8px}
 .paginacao-meus-pedidos button{padding:9px 14px}
 .paginacao-meus-pedidos button:disabled{opacity:.45;cursor:not-allowed}
+
+
+/* BM Móveis — identidade visual e acabamento responsivo */
+:root{color-scheme:light;--bm-ink:#20272d;--bm-muted:#68747d;--bm-line:#e4e8e8;--bm-paper:#fff;--bm-bg:#f3f5f4;--bm-accent:#b56f42;--bm-accent-dark:#8e512d;--bm-soft:#f7eee8;--bm-radius:16px;--bm-shadow:0 12px 34px rgba(28,39,43,.07)}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bm-bg);color:var(--bm-ink);-webkit-font-smoothing:antialiased}
+.container{width:min(100% - 40px,1040px);margin:34px auto 60px;padding:0}
+body> .container>header{position:relative;padding:26px 30px 24px;background:linear-gradient(120deg,#242b2e,#394247);border-radius:20px;color:#fff;box-shadow:var(--bm-shadow);margin-bottom:18px}
+body> .container>header small{display:inline-block;color:#e7b58f;font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase}
+body> .container>header h1{margin:7px 0 5px;font-size:clamp(25px,4vw,34px);letter-spacing:-.04em}
+body> .container>header p{margin:0;color:#d1d7d8;font-size:14px}
+#logout{position:absolute;right:24px;top:24px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);padding:9px 15px}
+.abas-app{padding:5px;background:#e7ebe9;border:1px solid #dfe5e2;border-radius:13px;width:max-content;max-width:100%;margin:0 0 20px}
+.abas-app .aba-app{border-radius:9px;background:transparent;color:#526067;padding:10px 18px}
+.abas-app .aba-app.ativa{background:#fff;color:var(--bm-ink);box-shadow:0 2px 8px #17252a12}
+section{background:var(--bm-paper);border:1px solid var(--bm-line);border-radius:var(--bm-radius);padding:24px;margin:16px 0;box-shadow:var(--bm-shadow)}
+section h2{font-size:16px;letter-spacing:-.02em;margin:0 0 18px;padding-bottom:13px;border-bottom:1px solid #edf0ef;color:#303a3f}
+section h2:before{content:"";display:inline-block;width:4px;height:17px;border-radius:4px;background:var(--bm-accent);vertical-align:-3px;margin-right:10px}
+.grid{gap:16px 18px}
+.campo{gap:6px}
+.campo>span{font-size:11px;text-transform:uppercase;letter-spacing:.055em;color:#647078;font-weight:750}
+input,textarea,select{min-height:44px;padding:11px 13px;border:1px solid #d9e0dd;border-radius:10px;background:#fff;color:#273238;font:inherit;font-size:14px;transition:border-color .18s,box-shadow .18s}
+textarea{min-height:104px;resize:vertical}
+input:focus,textarea:focus,select:focus{border-color:var(--bm-accent);box-shadow:0 0 0 3px rgba(181,111,66,.12)}
+button{font:inherit;font-weight:700;background:var(--bm-ink);border-radius:10px;padding:11px 17px;transition:transform .16s,background .16s,box-shadow .16s}
+button:hover{background:#354147;box-shadow:0 5px 14px rgba(24,36,40,.12)}
+button:active{transform:translateY(1px)}
+#finalizar{width:100%;min-height:52px;margin:6px 0 26px;background:var(--bm-accent);font-size:15px;box-shadow:0 8px 18px rgba(181,111,66,.2)}
+#finalizar:hover{background:var(--bm-accent-dark)}
+#adicionarProduto{margin-top:4px}
+#resultadoBusca{border-color:#d9e0dd;border-radius:10px}
+#resultadoBusca div{padding:12px 14px;font-size:13px}
+#resultadoBusca div:hover{background:var(--bm-soft)}
+#listaProdutos{margin-top:16px}
+#listaProdutos li{background:#f7f8f7;border:1px solid #e8ecea;border-radius:12px;padding:15px;margin:9px 0}
+.produto-resumo{gap:6px}
+.produto-resumo strong{font-size:14px;color:#2c373c}
+#listaProdutos+h3,#total{font-size:20px}
+#total{color:var(--bm-accent-dark)}
+.filtros-pedidos{grid-template-columns:repeat(2,minmax(0,1fr));align-items:end}
+.filtros-pedidos button{min-height:44px}
+.pedido-vendedor{border:1px solid var(--bm-line);border-radius:14px;box-shadow:0 5px 18px rgba(28,39,43,.045)}
+.pedido-vendedor-topo h3{font-size:16px}
+.pedido-vendedor summary{color:var(--bm-accent-dark)}
+.paginacao-meus-pedidos{border-color:var(--bm-line)}
+.paginacao-meus-pedidos button{border-radius:9px}
+.texto-ajuda{font-size:13px}
+.login-pedido{width:min(100% - 32px,440px);margin:9vh auto}
+.login-pedido header{background:linear-gradient(120deg,#242b2e,#394247);padding:28px;border-radius:20px;color:#fff}
+.login-pedido header small{color:#e7b58f;text-transform:uppercase;letter-spacing:.16em;font-weight:800}
+.login-pedido header p{color:#d1d7d8}
+.login-pedido section{display:grid;gap:12px}
+.login-pedido section input{width:100%}
+.login-pedido section button{width:100%;min-height:48px;background:var(--bm-accent)}
+@media(max-width:700px){
+ .container{width:min(100% - 24px,620px);margin:12px auto 32px}
+ body>.container>header{padding:22px 20px 20px;border-radius:16px;padding-right:95px}
+ body>.container>header h1{font-size:25px}
+ #logout{right:14px;top:16px;padding:8px 11px}
+ section{padding:18px 16px;margin:12px 0;border-radius:14px}
+ .grid,.filtros-pedidos{grid-template-columns:1fr}
+ .abas-app{width:100%;display:grid;grid-template-columns:1fr 1fr}
+ .abas-app button{padding:10px 8px}
+ #finalizar{position:sticky;bottom:10px;z-index:5;box-shadow:0 8px 24px rgba(28,39,43,.22)}
+ .pedido-vendedor-topo{flex-direction:row;align-items:center}
+ .pedido-vendedor-topo>strong{white-space:normal}
+}
+@media(min-width:701px){.container{max-width:1000px}}

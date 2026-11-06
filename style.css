@@ -96,3 +96,76 @@ button:active{transform:translateY(1px)}
 @media(max-width:1050px){.container{width:min(100% - 36px,900px)}#novaVendaView{grid-template-columns:minmax(0,1fr) minmax(290px,.78fr);gap:0 13px}#novaVendaView>section{padding:19px}}
 @media(max-width:760px){.container{width:calc(100% - 24px);margin:12px auto 35px}body>.container>header{gap:12px;padding:19px 17px;border-radius:16px}body>.container>header:before{flex-basis:39px;width:39px;height:39px;border-radius:11px;font-size:14px}body>.container>header h1{font-size:22px}body>.container>header p{font-size:10px}body>.container>header #logout{padding:8px 10px;font-size:10px}#novaVendaView{display:flex;flex-direction:column;gap:0}#novaVendaView>section{width:100%;margin-bottom:12px;padding:18px 16px;border-radius:14px}.grid,.filtros-pedidos{grid-template-columns:1fr}.abas-app{display:grid;grid-template-columns:1fr 1fr;width:100%}.abas-app button{padding:10px 8px}#finalizar{position:sticky;bottom:9px;z-index:5;margin:4px 0 15px;box-shadow:0 9px 25px rgba(16,43,55,.2)}#meusPedidosView section{padding:18px 15px}.pedido-vendedor{padding:13px}.pedido-vendedor-topo{flex-direction:row;align-items:center}.pedido-vendedor-topo>strong{white-space:normal}.pedido-vendedor-status{gap:9px}}
 @media(max-width:420px){body>.container>header{flex-wrap:wrap}body>.container>header>div{min-width:0;flex:1}body>.container>header #logout{position:absolute;top:12px;right:12px}body>.container>header>div{padding-right:55px}.grid{gap:12px}.pedido-vendedor-topo{align-items:flex-start;flex-direction:column}}
+
+
+/* Identidade visual sincronizada com o Painel BM */
+:root{
+  --ink:#172b35;
+  --muted:#71818a;
+  --line:#e4eaec;
+  --paper:#fff;
+  --canvas:#f3f6f7;
+  --nav:#102b37;
+  --nav2:#173b49;
+  --accent:#18a6a0;
+  --accent-dark:#117c78;
+  --accent-soft:#e4f5f3;
+  --gold:#d8a76b;
+  --shadow:0 12px 34px rgba(20,45,55,.07);
+  --shadow-sm:0 4px 14px rgba(20,45,55,.05);
+  --radius:17px;
+}
+html{background:var(--canvas)}
+body{background:var(--canvas);font-family:'DM Sans',sans-serif;color:var(--ink)}
+.container{width:min(100% - 64px,1480px);margin:34px auto 54px}
+body>.container>header{
+  display:flex;align-items:flex-end;justify-content:space-between;gap:20px;
+  margin:4px 0 30px;padding:0;background:transparent;border:0;border-radius:0;
+  color:var(--ink);box-shadow:none;
+}
+body>.container>header:before{display:none}
+body>.container>header small{
+  display:block;color:#80939a;font:800 9px 'DM Sans',sans-serif;
+  letter-spacing:1.5px;text-transform:uppercase
+}
+body>.container>header h1{
+  margin:5px 0 0;color:var(--ink);
+  font:800 clamp(25px,3vw,32px)/1.15 'Manrope',sans-serif;letter-spacing:-1.1px
+}
+body>.container>header p{margin:8px 0 0;color:var(--muted);font-size:13px}
+body>.container>header #logout{
+  padding:10px 14px;border:1px solid var(--line);border-radius:9px;
+  background:#fff;color:#52656d;font:600 11px 'DM Sans',sans-serif;
+}
+body>.container>header #logout:hover{background:#edf2f3;box-shadow:none}
+.abas-app{
+  gap:7px;margin-bottom:22px;padding:5px;border:1px solid var(--line);
+  border-radius:12px;background:#edf2f3
+}
+.abas-app .aba-app{padding:10px 16px;border-radius:8px;color:#667980;font:600 12px 'DM Sans',sans-serif}
+.abas-app .aba-app.ativa{background:#fff;color:var(--ink);box-shadow:var(--shadow-sm)}
+#novaVendaView>section,#meusPedidosView section{
+  border-color:var(--line);border-radius:var(--radius);box-shadow:var(--shadow-sm)
+}
+#novaVendaView>section h2,#meusPedidosView h2{
+  color:var(--ink);font-family:'Manrope',sans-serif
+}
+.campo>span{color:#6d7e86;font-family:'DM Sans',sans-serif;font-size:10px;letter-spacing:.2px}
+input,textarea,select{
+  border-color:#dce5e7;border-radius:9px;background:#fbfcfc;
+  color:var(--ink);font:500 12px 'DM Sans',sans-serif
+}
+input:focus,textarea:focus,select:focus{
+  border-color:var(--accent);box-shadow:0 0 0 3px rgba(24,166,160,.12)
+}
+button{font-family:'DM Sans',sans-serif}
+#adicionarProduto,.filtros-pedidos button{background:var(--accent)}
+#adicionarProduto:hover,.filtros-pedidos button:hover{background:var(--accent-dark)}
+#finalizar{background:var(--accent);box-shadow:0 8px 20px rgba(24,166,160,.16)}
+#finalizar:hover{background:var(--accent-dark)}
+#total{color:var(--accent-dark)}
+@media(max-width:760px){
+  .container{width:calc(100% - 24px);margin:20px auto 35px}
+  body>.container>header{align-items:flex-start;gap:12px;margin-bottom:22px;padding:0}
+  body>.container>header h1{font-size:25px}
+}

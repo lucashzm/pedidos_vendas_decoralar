@@ -6,7 +6,7 @@ alter table public.pedidos
   add column if not exists taxa_parcelamento numeric(12,2) not null default 0;
 
 -- Primeiro número de pedido após a limpeza dos registros de teste.
-alter table public.pedidos alter column numero_pedido restart with 48327;
+alter table public.pedidos alter column numero_pedido restart with 1200;
 
 drop policy if exists authenticated_can_insert_pedidos on public.pedidos;
 create policy authenticated_can_insert_pedidos

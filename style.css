@@ -169,3 +169,36 @@ button{font-family:'DM Sans',sans-serif}
   body>.container>header{align-items:flex-start;gap:12px;margin-bottom:22px;padding:0}
   body>.container>header h1{font-size:25px}
 }
+
+
+/* Ordem natural das etapas do pedido no desktop */
+@media(min-width:761px){
+  #novaVendaView{
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    grid-template-areas:
+      "cliente endereco"
+      "referencia observacoes"
+      "produtos produtos"
+      "pagamento pagamento"
+      "finalizar finalizar";
+    gap:0 18px;
+  }
+  #novaVendaView>section:nth-of-type(1){grid-area:cliente}
+  #novaVendaView>section:nth-of-type(2){grid-area:endereco}
+  #novaVendaView>section:nth-of-type(3){grid-area:referencia}
+  #novaVendaView>section:nth-of-type(4){grid-area:produtos}
+  #novaVendaView>section:nth-of-type(5){grid-area:pagamento}
+  #novaVendaView>section:nth-of-type(6){grid-area:observacoes}
+  #finalizar{grid-area:finalizar;position:static}
+}
+
+/* No celular, preservar a mesma sequência visual do desktop */
+@media(max-width:760px){
+  #novaVendaView>section:nth-of-type(1){order:1}
+  #novaVendaView>section:nth-of-type(2){order:2}
+  #novaVendaView>section:nth-of-type(3){order:3}
+  #novaVendaView>section:nth-of-type(6){order:4}
+  #novaVendaView>section:nth-of-type(4){order:5}
+  #novaVendaView>section:nth-of-type(5){order:6}
+  #finalizar{order:7}
+}
